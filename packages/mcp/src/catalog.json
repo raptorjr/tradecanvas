@@ -997,8 +997,7 @@
       "params": {
         "period": 14
       },
-      "inputs": {
-        "period": {
+      "inputs": {        "period": {
           "kind": "int",
           "min": 1,
           "step": 1
@@ -1997,8 +1996,7 @@
       ],
       "levels": [
         26.5,
-        27
-      ]
+        27      ]
     },
     {
       "id": "cmo",
@@ -2997,8 +2995,7 @@
       "params": {
         "period": 10,
         "smooth": 3,
-        "signal": 3
-      },
+        "signal": 3      },
       "inputs": {
         "period": {
           "kind": "int",
@@ -3997,8 +3994,7 @@
           "key": "value",
           "title": "VR",
           "kind": "line"
-        }
-      ],
+        }      ],
       "levels": [
         70,
         150,
@@ -4997,8 +4993,7 @@
             {
               "value": 0.786,
               "visible": true,
-              "color": "#5b6cf0"
-            },
+              "color": "#5b6cf0"            },
             {
               "value": 1,
               "visible": true,
@@ -5997,8 +5992,7 @@
     {
       "type": "elliottTriangle",
       "name": "Elliott Triangle Wave",
-      "anchors": 6,
-      "options": {
+      "anchors": 6,      "options": {
         "degree": {
           "kind": "choice",
           "label": "Degree",
@@ -6997,8 +6991,7 @@
       },
       {
         "name": "autoScale",
-        "type": "boolean",
-        "doc": "Fit the price axis to the bars on view as they move (default `true`). `false` holds the range on screen; each new series (the first bars, `setData`'s, a stream's symbol or timeframe switch) is still fitted once, and bars that come one by one into an empty chart until they fill it.",
+        "type": "boolean",        "doc": "Fit the price axis to the bars on view as they move (default `true`). `false` holds the range on screen; each new series (the first bars, `setData`'s, a stream's symbol or timeframe switch) is still fitted once, and bars that come one by one into an empty chart until they fill it.",
         "kind": "boolean"
       },
       {
@@ -7284,6 +7277,18 @@
         "name": "bar",
         "type": "boolean",
         "doc": "The bar above the charts: arrangement, sync, layouts. Default `true`.",
+        "kind": "boolean"
+      },
+      {
+        "name": "sharedToolbar",
+        "type": "boolean",
+        "doc": "Move the active chart's native toolbar into one shared row above the grid. Default `false`.",
+        "kind": "boolean"
+      },
+      {
+        "name": "sharedDrawingTools",
+        "type": "boolean",
+        "doc": "Show the drawing sidebar only on the active chart. Default `false`.",
         "kind": "boolean"
       },
       {
@@ -7985,8 +7990,7 @@
           "doc": "Show the hovered slice's value and share. Default `true`.",
           "kind": "boolean"
         },
-        {
-          "name": "onSliceClick",
+        {          "name": "onSliceClick",
           "type": "(slice: DonutSlice) => void",
           "kind": "function"
         },
@@ -8985,8 +8989,7 @@
           "name": "maxPointColor",
           "type": "string",
           "kind": "string"
-        },
-        {
+        },        {
           "name": "theme",
           "type": "ThemeName | Theme",
           "doc": "The chart's colours: `'dark'` (the default), `'light'`, or a theme of your own."
