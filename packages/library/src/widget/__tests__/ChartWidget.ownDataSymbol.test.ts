@@ -113,8 +113,18 @@ describe('the legend of a widget fed its own bars', () => {
       close: 100.5 + index,
       volume: 10,
     }));
-    widget.setData(bars, '1m');
+    widget.setData([bars[0]], '1m');
     expect(FakeChart.last.data).toHaveLength(1);
+    bars.slice(1).forEach(bar => widget.appendDataBar(bar));
+    expect(FakeChart.last.data).toHaveLength(1);
+    expect(FakeChart.last.data[0]).toMatchObject({
+      time: 0,
+      open: 100,
+      high: 105,
+      low: 99,
+      close: 104.5,
+      volume: 50,
+    });
 
     widget.appendDataBar({
       time: 5 * 60_000,
