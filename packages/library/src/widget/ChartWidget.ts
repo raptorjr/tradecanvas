@@ -2759,10 +2759,10 @@ export class ChartWidget {
    * aggregate from. The data is rendered at the current timeframe (resampled
    * when that timeframe is coarser than the data's native spacing).
    */
-  setData(data: DataSeries): void {
+  setData(data: DataSeries, baseTimeframe?: TimeFrame): void {
     this.localSeq++; // supersedes a local switch still waiting to run
     this.baseSeries = data;
-    this.baseTimeframeMs = inferTimeframeMs(data);
+    this.baseTimeframeMs = baseTimeframe ? timeframeToMs(baseTimeframe) : inferTimeframeMs(data);
     this.applyTimeframeData();
     // Static data is loaded the moment it's set, even an empty series. With a
     // live adapter the stream's own load decides (connectStream).
