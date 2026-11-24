@@ -65,6 +65,8 @@ export interface ChartWidgetGridOptions {
   bar?: boolean;
   /** Move the active chart's native toolbar into one shared row above the grid. Default `false`. */
   sharedToolbar?: boolean;
+  /** Show the drawing sidebar only on the active chart. Default `false`. */
+  sharedDrawingTools?: boolean;
   /** The chart in use changed (pressed, or the grid shrank). */
   onActiveChange?: (index: number, widget: ChartWidget) => void;
   /** A chart was made: at the start, and when the grid grows. Feed it data, add indicators… */
@@ -657,18 +659,22 @@ export class ChartWidgetGrid {
 
   /** Keep only the active chart's native TradeCanvas toolbar in the shared row. */
   private syncSharedToolbar(): void {
-    if (!this.sharedToolbarEl) return;
-    this.cells.forEach((cell, index) => {
-      const toolbar = cell.toolbar;
-      if (!toolbar) return;
-      if (index === this.active) {
-        toolbar.hidden = false;
-        if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
-      } else {
-        if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
-        toolbar.hidden = true;
-      }
-    });
+    if (this.sharedToolbarEl) {
+      this.cells.forEach((cell, index) => {
+        const toolbar = cell.toolbar;
+        if (!toolbar) return;
+        if (index === this.active) {
+          toolbar.hidden = false;
+          if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
+        } else {
+          if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
+          toolbar.hidden = true;
+        }
+      });
+    }
+    if (this.options.sharedDrawingTools) {
+      this.cells.forEach((cell, index) => cell.widget.setFeatures({ sidebar: index === this.active }));
+    }
   }
 
   /** A tab per chart, its symbol and interval: the active one pressed. */
