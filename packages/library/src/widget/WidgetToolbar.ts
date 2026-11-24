@@ -46,6 +46,8 @@ export function setHostButtonName(btn: HTMLButtonElement, label: string): void {
 export class WidgetToolbar {
   private config: ToolbarConfig;
   private callbacks: ToolbarCallbacks;
+  /** The owning widget root stays stable when a grid moves this toolbar to its shared row. */
+  private widgetRoot!: HTMLElement;
   private t: Translator;
   private el: HTMLDivElement;
   private chartTypeDropdown: WidgetDropdown | null = null;
@@ -98,6 +100,7 @@ export class WidgetToolbar {
     markPart(this.el, 'toolbar');
     this.build();
     host.appendChild(this.el);
+    this.widgetRoot = this.el.closest<HTMLElement>('.tcw-root') ?? host;
     if (typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(() => this.fit());
       this.resizeObserver.observe(this.el);
@@ -563,7 +566,7 @@ export class WidgetToolbar {
 
   /** The widget this toolbar is in, where its switches and menus live. */
   private rootEl(): HTMLElement {
-    return this.el.closest<HTMLElement>('.tcw-root') ?? this.host;
+    return this.widgetRoot;
   }
 
   /** Show a panel button (by its role: 'account', 'objects'…) as on or off. */
