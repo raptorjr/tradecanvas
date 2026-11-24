@@ -217,6 +217,17 @@ describe('ChartWidgetGrid', () => {
     expect(grid.getActiveIndex()).toBe(1);
   });
 
+  it('shows one native toolbar for the active chart when shared toolbar mode is enabled', () => {
+    make({ sharedToolbar: true });
+    const shared = host.querySelector('.tcw-grid-active-toolbar');
+    expect(shared?.querySelectorAll('.tcw-toolbar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-toolbar[hidden]')).toHaveLength(1);
+    grid.setActive(1);
+    expect(shared?.querySelectorAll('.tcw-toolbar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-toolbar[hidden]')).toHaveLength(1);
+    expect(grid.getActiveWidget()).toBe(grid.getWidget(1));
+  });
+
   it('passes a symbol on only when symbols are synced', async () => {
     make();
     await grid.getWidget(0)!.setSymbol('XXX');
