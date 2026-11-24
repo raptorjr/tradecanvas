@@ -235,8 +235,28 @@ export class ChartWidgetGrid {
    */
   setLayout(layout: GridLayout): void {
     if (layout === this.layout || !isGridLayout(layout)) return;
+    const count = gridChartCount(GRID_LAYOUT_SHAPES[layout]);
+    // RR Metrics' single-chart view is an expansion of the active chart, not
+    // a reset to cell zero. Park the other charts in their current relative
+    // order so growing the grid brings every chart back with its own state.
+    if (count === 1 && this.cells.length > 1) {
+      const activeCell = this.cells[this.active];
+      const otherLayouts = this.cells
+        .filter((_, index) => index !== this.active)
+        .map((cell) => cell.widget.captureLayout());
+      const previouslyParked = [...this.parked.entries()]
+        .sort(([a], [b]) => a - b)
+        .map(([, saved]) => saved);
+      for (const cell of this.cells) {
+        if (cell !== activeCell) this.destroyCell(cell);
+      }
+      this.cells = [activeCell];
+      this.parked.clear();
+      [...otherLayouts, ...previouslyParked].forEach((saved, index) => this.parked.set(index + 1, saved));
+      this.active = 0;
+      this.options.onActiveChange?.(0, activeCell.widget);
+    }
     this.layout = layout;
-    const count = this.shapeCount();
     while (this.cells.length > count) {
       const index = this.cells.length - 1;
       const cell = this.cells.pop()!;
