@@ -228,6 +228,13 @@ describe('ChartWidgetGrid', () => {
     expect(grid.getActiveWidget()).toBe(grid.getWidget(1));
   });
 
+  it('shows drawing tools only for the active chart in shared drawing-tools mode', () => {
+    make({ sharedDrawingTools: true });
+    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([true, false]);
+    grid.setActive(1);
+    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([false, true]);
+  });
+
   it('passes a symbol on only when symbols are synced', async () => {
     make();
     await grid.getWidget(0)!.setSymbol('XXX');
