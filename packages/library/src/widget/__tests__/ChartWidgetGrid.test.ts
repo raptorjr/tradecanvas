@@ -115,9 +115,11 @@ describe('ChartWidgetGrid', () => {
     expect(grid.getLayout()).toBe('2x2');
     grid.setActive(3);
     pick('One chart');
-    expect(symbols()).toEqual(['AAA']);
+    expect(symbols()).toEqual(['DDD']);
     expect(grid.getActiveIndex()).toBe(0);
     expect(changes).toEqual([3, 0]);
+    grid.setLayout('2x2');
+    expect(symbols()).toEqual(['DDD', 'AAA', 'BBB', 'CCC']);
   });
 
   it('gives every chart the style overrides, and the charts it adds later too', () => {
