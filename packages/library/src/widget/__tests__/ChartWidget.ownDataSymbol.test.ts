@@ -113,7 +113,7 @@ describe('the legend of a widget fed its own bars', () => {
       close: 100.5 + index,
       volume: 10,
     }));
-    widget.setData(bars);
+    widget.setData(bars, '1m');
     expect(FakeChart.last.data).toHaveLength(1);
 
     widget.appendDataBar({
