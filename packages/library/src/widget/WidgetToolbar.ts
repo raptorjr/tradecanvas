@@ -86,7 +86,7 @@ export class WidgetToolbar {
    * open inside their buttons.
    */
   constructor(
-    private readonly host: HTMLElement,
+    host: HTMLElement,
     config: ToolbarConfig,
     callbacks: ToolbarCallbacks,
     t: Translator,
