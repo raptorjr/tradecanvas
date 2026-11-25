@@ -221,6 +221,7 @@ export class Chart {
   private bracketWarner: (() => void) | null = null;
   private execTeardown: (() => void) | null = null;
   private autoScrollOnNewBar = true;
+  private hostReplayViewport = false;
   /** The drawn series (Renko bricks…) the indicators were last worked out on; null: the data bars. */
   private indicatorsOnDrawn: DataSeries | null = null;
   /** The series the chart type draws, kept between frames. */
@@ -1258,6 +1259,7 @@ export class Chart {
       this.loadDuringReplay(data);
       return;
     }
+    const anchor = this.hostReplayViewport ? this.captureHostReplayAnchor() : null;
     // A full replace is a new series: a stream's reconnect no longer merges into it.
     this.snapshotKey = null;
     this.endReplaySession();
@@ -1286,8 +1288,9 @@ export class Chart {
     this.recalcIndicators(kept);
     // Auto-set current price line from last bar's close
     if (lastKept) this.currentPriceLine.setPrice(lastKept.close);
-    this.updateViewportAndRender(true);
-    this.fitFewColumns();
+    this.updateViewportAndRender(!anchor);
+    if (anchor && kept.length) this.restoreHostReplayAnchor(anchor);
+    else this.fitFewColumns();
     this.emitBars(kept.length);
   }
 
@@ -1449,8 +1452,9 @@ export class Chart {
     }
     // Follow the live edge only if the view is already there — browsing
     // history shouldn't be yanked back to the end on every new bar.
-    const follow = this.autoScrollOnNewBar && this.viewport.isAtEnd();
     const before = write.before;
+    const follow = !this.hostReplayViewport && this.autoScrollOnNewBar && this.viewport.isAtEnd();
+    const replayFollow = this.hostReplayViewport && this.hostReplayFrontierVisible(before);
     const data = this.series.bars();
     this.crosshairHandler.setData(data);
     // Re-finalise the bar that just closed (its last tick may differ from the
@@ -1459,6 +1463,7 @@ export class Chart {
     // Measured from the close before it, as a stream measures a new bar: one opening there is level.
     this.currentPriceLine.setPrice(bar.close, data[data.length - 2]?.close);
     this.updateViewportAndRender(follow);
+    if (replayFollow && data.length > before) this.followHostReplayFrontier();
     if (data.length !== before) this.emitBars(data.length);
     else this.lastBarMoved();
     // Last: an alert's listener sees the chart with its new bar.
@@ -1481,13 +1486,15 @@ export class Chart {
       return;
     }
     // As `appendBar`: the live edge only while the view is there and auto-scroll is on.
-    const follow = this.autoScrollOnNewBar && this.viewport.isAtEnd();
     const before = write.before;
+    const follow = !this.hostReplayViewport && this.autoScrollOnNewBar && this.viewport.isAtEnd();
+    const replayFollow = this.hostReplayViewport && this.hostReplayFrontierVisible(before);
     const data = this.series.bars();
     this.recalcIndicatorsFrom(data, before - 1);
     this.crosshairHandler.setData(data);
     this.currentPriceLine.setPrice(price, data[data.length - 2]?.close);
     this.updateViewportAndRender(follow);
+    if (replayFollow && data.length > before) this.followHostReplayFrontier();
     if (data.length !== before) this.emitBars(data.length);
     else this.lastBarMoved();
     this.followLivePrice(price);
@@ -3869,6 +3876,55 @@ export class Chart {
   }
 
   // --- Viewport ---
+
+  /** Opt in for host-owned replay (not TradeCanvas's own replay engine). Keep
+   * the user's horizontal view across series replacements and follow new
+   * bars only when they reach the rightmost 10% of the plot. */
+  setHostReplayViewport(enabled: boolean): void {
+    this.hostReplayViewport = enabled;
+  }
+
+  private captureHostReplayAnchor(): { time: number; x: number } | null {
+    const data = this.getDisplayData();
+    const { offset, barWidth, barSpacing, chartRect } = this.viewport.getState();
+    const unit = barWidth + barSpacing;
+    if (!data.length || !this.isTimeAligned() || unit <= 0 || chartRect.width <= 0) return null;
+    const last = data.length - 1;
+    const lastX = last * unit + barWidth / 2 - offset;
+    // Prefer the replay frontier when visible; otherwise anchor the user's
+    // historical view around its centre, not an off-screen latest candle.
+    const index = lastX >= 0 && lastX <= chartRect.width ? last
+      : Math.max(0, Math.min(last, Math.round((offset + chartRect.width / 2 - barWidth / 2) / unit)));
+    return { time: data[index].time, x: index * unit + barWidth / 2 - offset };
+  }
+
+  private restoreHostReplayAnchor(anchor: { time: number; x: number }): void {
+    const data = this.getDisplayData();
+    if (!data.length) return;
+    const { offset, barWidth, barSpacing } = this.viewport.getState();
+    // On a coarser interval, use the candle containing the old timestamp.
+    const index = Math.max(0, Math.min(data.length - 1, Math.floor(timestampToBarIndex(anchor.time, data))));
+    this.viewport.scrollBy(index * (barWidth + barSpacing) + barWidth / 2 - offset - anchor.x);
+    this.updateViewportAndRender();
+  }
+
+  private hostReplayFrontierVisible(count: number): boolean {
+    if (!this.isTimeAligned() || count <= 0 || !this.autoScrollOnNewBar) return false;
+    const { offset, barWidth, barSpacing, chartRect } = this.viewport.getState();
+    const x = (count - 1) * (barWidth + barSpacing) + barWidth / 2 - offset;
+    return x >= 0 && x <= chartRect.width;
+  }
+
+  private followHostReplayFrontier(): void {
+    const count = this.getDisplayData().length;
+    const { offset, barWidth, barSpacing, chartRect } = this.viewport.getState();
+    const x = (count - 1) * (barWidth + barSpacing) + barWidth / 2 - offset;
+    const limit = chartRect.width * 0.9;
+    if (count > 0 && chartRect.width > 0 && x > limit) {
+      this.viewport.scrollBy(x - limit);
+      this.updateViewportAndRender();
+    }
+  }
 
   scrollTo(timestamp: number): void {
     const data = this.series.bars();
