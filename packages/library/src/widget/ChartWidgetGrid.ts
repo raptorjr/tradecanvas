@@ -688,25 +688,42 @@ export class ChartWidgetGrid {
   private syncSharedToolbar(): void {
     if (this.sharedToolbarEl) {
       this.cells.forEach((cell, index) => {
-        const toolbar = cell.toolbar;
+        // A widget can rebuild its chrome when features change. Resolve the
+        // live elements on every sync instead of trusting references captured
+        // only once when the cell was first created.
+        const widgetRoot = cell.el.querySelector<HTMLElement>('.tcw-root') ?? cell.widgetRoot;
+        const toolbar = widgetRoot?.querySelector<HTMLElement>('.tcw-toolbar') ?? cell.toolbar;
         if (!toolbar) return;
+        cell.widgetRoot = widgetRoot;
+        cell.toolbar = toolbar;
+
+        const liveReplayButton = toolbar.querySelector<HTMLElement>('[data-role="replay"]');
+        if (liveReplayButton) cell.replayButton = liveReplayButton;
+        const replayButton = cell.replayButton;
+
         if (index === this.active) {
           toolbar.hidden = false;
-          if (this.options.layoutPickerInToolbar && this.layoutPicker && cell.replayButton) {
-            // The picker takes the replay button's exact slot in the active
-            // chart's toolbar (beside Objects), rather than adding a new bar.
-            if (this.layoutPicker.button.parentElement !== toolbar) {
-              cell.replayButton.replaceWith(this.layoutPicker.button);
+          if (this.options.layoutPickerInToolbar && this.layoutPicker) {
+            if (liveReplayButton) {
+              // The picker takes Replay's exact slot in the active chart's
+              // toolbar (beside Objects), rather than adding a separate bar.
+              liveReplayButton.replaceWith(this.layoutPicker.button);
+              cell.replayButton = liveReplayButton;
+            } else if (this.layoutPicker.button.parentElement !== toolbar) {
+              // If the toolbar was rebuilt without its cached Replay node,
+              // keep the picker in the same toolbar group, immediately before
+              // Objects (or at the end when that control is disabled).
+              const objectsButton = toolbar.querySelector<HTMLElement>('[data-role="objectTree"]');
+              toolbar.insertBefore(this.layoutPicker.button, objectsButton);
             }
           }
           if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
         } else {
-          // Give an inactive chart its own replay button back before parking
-          // its toolbar. The single layout picker then follows the next chart.
-          if (this.options.layoutPickerInToolbar && this.layoutPicker?.button.parentElement === toolbar && cell.replayButton) {
-            this.layoutPicker.button.replaceWith(cell.replayButton);
+          // Restore this chart's own Replay button before parking its toolbar.
+          if (this.options.layoutPickerInToolbar && this.layoutPicker?.button.parentElement === toolbar && replayButton) {
+            this.layoutPicker.button.replaceWith(replayButton);
           }
-          if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
+          if (toolbar.parentElement === this.sharedToolbarEl && widgetRoot) widgetRoot.prepend(toolbar);
           toolbar.hidden = true;
         }
       });
