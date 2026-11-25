@@ -115,6 +115,9 @@ describe('ChartWidgetGrid', () => {
     const replayButtons = toolbars.map(toolbar => toolbar.querySelector('[data-role="replay"]'));
     const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
     const originalReplayButton = cells[0].replayButton;
+    // The first chart's native Replay button has already been replaced by
+    // the picker during grid construction, so capture the parked node.
+    replayButtons[0] = originalReplayButton;
 
     expect(picker).toBeTruthy();
     expect(picker.parentElement).toBe(toolbars[0]);
