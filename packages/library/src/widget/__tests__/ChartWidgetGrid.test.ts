@@ -93,6 +93,22 @@ afterEach(() => {
 });
 
 describe('ChartWidgetGrid', () => {
+  it('puts the layout picker in the shared toolbar in place of replay', () => {
+    make({ bar: false, sharedToolbar: true, layoutPickerInToolbar: true, layouts: false });
+    const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
+    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
+    expect(grid.getWidget(0)?.isFeatureOn('toolbar.replay')).toBe(false);
+
+    grid.setActive(1);
+    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
+    expect(sharedToolbar?.querySelector('[data-role="replay"]')).toBeNull();
+
+    layoutButton().click();
+    host.querySelector<HTMLButtonElement>('.tcw-grid-picker [role="menuitemradio"][aria-label="4 charts, 2 across and 2 down"]')!.click();
+    expect(grid.getLayout()).toBe('2x2');
+    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
+  });
+
   it('opens two charts side by side, each with its own symbol, the first one active', () => {
     make();
     expect(symbols()).toEqual(['AAA', 'BBB']);
