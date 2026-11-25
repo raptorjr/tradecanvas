@@ -49,6 +49,7 @@ const FAB_PLOT_BOTTOM = '--tcw-fab-plot-bottom';
 
 export class WidgetDrawingSidebar {
   private config: SidebarConfig;
+  private readonly homeHost: HTMLElement;
   private callbacks: SidebarCallbacks;
   private el: HTMLDivElement;
   private groupWraps: HTMLDivElement[] = [];
@@ -101,12 +102,13 @@ export class WidgetDrawingSidebar {
   };
 
   constructor(
-    private readonly host: HTMLElement,
+    private host: HTMLElement,
     config: SidebarConfig,
     callbacks: SidebarCallbacks,
     private readonly t: Translator = EN_TRANSLATOR,
   ) {
     this.config = config;
+    this.homeHost = host;
     this.callbacks = callbacks;
     this.el = document.createElement('div');
     this.el.className = 'tcw-sidebar';
@@ -149,6 +151,16 @@ export class WidgetDrawingSidebar {
   private setFabPx(name: string, px: number): void {
     const value = `${Math.max(0, Math.round(px))}px`;
     if (this.fab.style.getPropertyValue(name) !== value) this.fab.style.setProperty(name, value);
+  }
+
+  /** Move the sidebar and its phone button with the grid's active chart. */
+  moveTo(host: HTMLElement | null, visible = true): void {
+    const target = host ?? this.homeHost;
+    this.host = target;
+    target.appendChild(this.el);
+    target.appendChild(this.fab);
+    this.el.hidden = !visible;
+    this.fab.hidden = !visible;
   }
 
   /** Laid out as on a phone: the sidebar hides behind the drawing button. */
