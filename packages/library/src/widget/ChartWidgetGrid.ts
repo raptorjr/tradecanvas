@@ -713,7 +713,7 @@ export class ChartWidgetGrid {
               // If the toolbar was rebuilt without its cached Replay node,
               // keep the picker in the same toolbar group, immediately before
               // Objects (or at the end when that control is disabled).
-              const objectsButton = toolbar.querySelector<HTMLElement>('[data-role="objectTree"]');
+              const objectsButton = toolbar.querySelector<HTMLElement>('[data-role="objects"]');
               toolbar.insertBefore(this.layoutPicker.button, objectsButton);
             }
           }
