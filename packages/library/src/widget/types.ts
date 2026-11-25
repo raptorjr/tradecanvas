@@ -437,6 +437,8 @@ export interface WidgetMenuItem {
   /** Makes it a switch, ticked when `true`; while `false` it shows its `icon`, if it has one. */
   checked?: boolean;
   onSelect: () => void;
+  /** Nested choices, rendered by the widget's existing submenu UI. */
+  submenu?: readonly WidgetMenuItem[];
 }
 
 /** A button of yours on the widget's toolbar; see `ChartWidget.addToolbarButton`. */
