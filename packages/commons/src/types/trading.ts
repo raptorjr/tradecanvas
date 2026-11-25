@@ -141,6 +141,10 @@ export interface TradingConfig {
    * profit in the profit or loss colour.
    */
   positionLabel?: string | ((ctx: PositionLabelContext) => string);
+  /** Format a position's SL/TP amount at the protective price, including during a drag. */
+  protectiveAmountLabel?: (ctx: PositionLabelContext) => string;
+  /** Optional extra pending order tag text at its displayed price, including during a drag. */
+  orderDetailLabel?: (order: TradingOrder, price: number) => string;
   depthOverlay?: DepthOverlayConfig;
   contextMenu?: { enabled?: boolean };
   /**

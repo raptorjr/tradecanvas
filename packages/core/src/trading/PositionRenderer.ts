@@ -199,12 +199,16 @@ export class PositionRenderer {
     if (price === undefined || !inPlot(y, viewport)) return null;
     const colors = colorsOf(config);
     const amount = amountAt(pos.side, pos.entryPrice, openQuantity(pos), price, pos.pointValue);
+    const amountText = config.protectiveAmountLabel
+      ? config.protectiveAmountLabel(buildPositionLabelContext(pos, price, config.pricePrecision ?? 2,
+        (p) => priceTagText(p, viewport, config.pricePrecision), viewport.numberLocale))
+      : formatAmount(amount, pos.currencySymbol ? 2 : amountDecimals(amount, pos.entryPrice, config.pricePrecision), viewport.numberLocale, pos.currencySymbol);
     // A distance, not the 0 or null a broker's own record may hold for "none".
     const trailing = typeof pos.trailingStop === 'number' && pos.trailingStop > 0;
     const cells: TagCell[] = [
       // A stop that follows the price says so: TSL.
       { kind: 'stamp', text: which === 'takeProfit' ? 'TP' : trailing ? 'TSL' : 'SL' },
-      { kind: 'text', text: formatAmount(amount, pos.currencySymbol ? 2 : amountDecimals(amount, pos.entryPrice, config.pricePrecision), viewport.numberLocale, pos.currencySymbol), color: amount >= 0 ? colors.profit : colors.loss },
+      { kind: 'text', text: amountText, color: amount >= 0 ? colors.profit : colors.loss },
     ];
     const dragged = dragState?.orderId === pos.id && dragState.sourceType === which;
     if (which === 'stopLoss' && config.lineButtons?.trailStop !== false && fitsPlot(y, viewport) && !dragged) {

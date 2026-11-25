@@ -1,5 +1,7 @@
 ## Unreleased
 
+- **Host trading label formatters** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): customize protective amounts and pending-entry details, including drag prices.
+
 - **Futures P&L on position and protective order labels** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): position `pointValue` scales displayed amounts per contract and `currencySymbol` optionally identifies the currency, including when dragging a stop or target.
 
 - **SL and TP handles drag from the position entry** (`@tradecanvas/core`, `@tradecanvas/chart`): a new protective level begins on its entry line and follows the pointer instead of jumping to a preset distance. A click without dragging does not create an order.
