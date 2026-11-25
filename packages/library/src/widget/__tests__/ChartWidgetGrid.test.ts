@@ -97,7 +97,8 @@ describe('ChartWidgetGrid', () => {
     make({ bar: false, sharedToolbar: true, layoutPickerInToolbar: true, layouts: false });
     const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
     expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
-    expect(grid.getWidget(0)?.isFeatureOn('toolbar.replay')).toBe(false);
+    expect(grid.getWidget(0)?.isFeatureOn('toolbar.replay')).toBe(true);
+    expect(sharedToolbar?.querySelector('[data-role="replay"]')).toBeNull();
 
     grid.setActive(1);
     expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
