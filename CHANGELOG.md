@@ -1,6 +1,6 @@
 ## Unreleased
 
-- **A grid's layout picker stays in the shared toolbar** (`@tradecanvas/chart`): it has a permanent place beside the active chart's toolbar, rather than taking the place of a per-chart replay button that may be absent.
+- **A grid's controls stay shared as charts change** (`@tradecanvas/chart`): the layout picker has a permanent place beside the active chart's toolbar, and the drawing sidebar and bottom status bar can each appear once for the active chart instead of being repeated in every cell.
 
 # Changelog
 
