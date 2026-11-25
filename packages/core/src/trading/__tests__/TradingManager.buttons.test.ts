@@ -219,21 +219,20 @@ describe('TradingManager: adding a stop-loss or a take-profit to a position with
     expect(addButtons()).toEqual(['takeProfit']);
   });
 
-  it('sets one at its starting distance on a click', () => {
+  it('does not create a protective level on a click without a drag', () => {
     click(buttonCentre('addStop', { which: 'stopLoss' }));
-    expect(events).toHaveLength(1);
-    expect(events[0].event).toBe('positionModify');
-    expect((events[0].data as { stopLoss: number }).stopLoss).toBeCloseTo(59.4);
+    click(buttonCentre('addStop', { which: 'takeProfit' }));
+    expect(events).toEqual([]);
   });
 
-  it('sets one where it is dragged to, the line keeping its distance from the pointer', () => {
+  it('drags the target directly from the entry line', () => {
     const at = buttonCentre('addStop', { which: 'takeProfit' });
     expect(manager.onPointerDown(at, unitViewport)).toBe(true);
-    // The target starts at 61.2 (2R of 1%); 10 px up on this chart is 10 higher.
+    // The target starts at entry 60; 10 px up on this chart is 10 higher.
     expect(manager.onPointerMove({ x: at.x, y: at.y - 10 }, unitViewport)).toBe(true);
     expect(manager.onPointerUp({ x: at.x, y: at.y - 10 })).toBe(true);
     expect(events).toHaveLength(1);
-    expect((events[0].data as { positionId: string; takeProfit: number })).toEqual({ positionId: 'p1', takeProfit: expect.closeTo(71.2, 5) });
+    expect((events[0].data as { positionId: string; takeProfit: number })).toEqual({ positionId: 'p1', takeProfit: expect.closeTo(70, 5) });
   });
 
   it('draws the line being set while it is dragged, with the stop’s tag, and no SL button meanwhile', () => {
@@ -272,20 +271,27 @@ describe('TradingManager: a stop added on the chart, after review', () => {
     manager.render(recordingCtx().ctx, zoomed, theme);
   });
 
-  it('starts one that would be off the plot at the plot’s edge, where it can be seen and dragged', () => {
-    const stop = addButton('stopLoss')!;
-    // Bottom edge, half a tag in: y 89.5 is 99.21 here; its 1% start, 98.6, is below the plot.
-    expect(stop.action.price).toBeCloseTo(99.21, 2);
-    const at = { x: stop.x + 2, y: stop.y + 2 };
-    manager.onPointerDown(at, zoomed);
-    manager.onPointerUp(at);
-    expect((events[0].data as { stopLoss: number }).stopLoss).toBeCloseTo(99.21, 2);
+  it('starts SL and TP at the entry and follows a small drag even with a tightly zoomed plot', () => {
+    for (const which of ['stopLoss', 'takeProfit'] as const) {
+      const b = addButton(which)!;
+      expect(b.action.price).toBeCloseTo(99.6);
+      const at = { x: b.x + 2, y: b.y + 2 };
+      const end = { x: at.x, y: at.y + (which === 'stopLoss' ? 10 : -10) };
+      expect(manager.onPointerDown(at, zoomed)).toBe(true);
+      expect(events).toHaveLength(which === 'stopLoss' ? 0 : 1);
+      manager.onPointerMove(end, zoomed);
+      manager.onPointerUp(end);
+      expect(events[events.length - 1]).toEqual({ event: 'positionModify', data: {
+        positionId: 'p1', [which]: expect.closeTo(which === 'stopLoss' ? 99.4 : 99.8, 5),
+      } });
+      manager.render(recordingCtx().ctx, zoomed, theme);
+    }
   });
 
-  it('offers none where even the plot’s edge is not beyond the price', () => {
+  it('keeps both drag handles available when the market moves away from entry', () => {
     manager.setCurrentPrice(99.1);
     manager.render(recordingCtx().ctx, zoomed, theme);
-    expect(addButton('stopLoss')).toBeUndefined();
+    expect(addButton('stopLoss')).toBeDefined();
     expect(addButton('takeProfit')).toBeDefined();
   });
 

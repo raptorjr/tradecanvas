@@ -1,5 +1,5 @@
 import type { TradingPosition, TradingConfig, ViewportState, Theme } from '@tradecanvas/commons';
-import { priceToY, yToPrice } from '../viewport/ScaleMapping.js';
+import { priceToY } from '../viewport/ScaleMapping.js';
 import { UI_ICONS, priceTagText } from '@tradecanvas/commons';
 import {
   amountAt,
@@ -12,7 +12,6 @@ import {
 import type { LineButton } from './lineButtons.js';
 import type { DragState } from './OrderRenderer.js';
 import { inPlot, levelLine } from './plot.js';
-import { defaultStopPrice, isBeyond, stopSide } from './positionStops.js';
 import { TAG_HEIGHT, drawAxisBadge, drawTags, type AxisBadge, type TagCell, type TradingTag } from './tradingTags.js';
 
 /** A stop's or a target's line: dashed, as a price the position may yet reach. */
@@ -41,23 +40,6 @@ function colorsOf(config: TradingConfig): { profit: string; loss: string; entry:
 function fitsPlot(y: number, viewport: ViewportState): boolean {
   const { chartRect } = viewport;
   return y - TAG_HEIGHT / 2 >= chartRect.y && y + TAG_HEIGHT / 2 <= chartRect.y + chartRect.height;
-}
-
-/**
- * Where a stop or a target added to `pos` starts, where it can be seen and
- * dragged: its default, else the plot's edge on its side, as long as that is
- * still beyond the entry and the price now. Null when not even that is: the
- * view is zoomed in on the wrong side of it.
- */
-function newStopStart(pos: TradingPosition, which: Stop, currentPrice: number | null, viewport: ViewportState): number | null {
-  const price = defaultStopPrice(pos, which, currentPrice);
-  if (fitsPlot(priceToY(price, viewport), viewport)) return price;
-  const { chartRect } = viewport;
-  // Half a tag in from either edge, so its tag fits too; by price, so an inverted scale reads the same.
-  const near = yToPrice(chartRect.y + TAG_HEIGHT / 2, viewport);
-  const far = yToPrice(chartRect.y + chartRect.height - TAG_HEIGHT / 2, viewport);
-  const edge = stopSide(pos, which) > 0 ? Math.max(near, far) : Math.min(near, far);
-  return Number.isFinite(edge) && isBeyond(pos, which, edge, currentPrice) ? edge : null;
 }
 
 /** What is still open of a position. */
@@ -196,13 +178,11 @@ export class PositionRenderer {
       if (show.addStops !== false) {
         for (const which of STOPS) {
           if (pos[which] !== undefined || (dragState?.orderId === pos.id && dragState.sourceType === which)) continue;
-          const start = newStopStart(pos, which, currentPrice, viewport);
-          if (start === null) continue;
           cells.push({
             kind: 'button',
             text: which === 'stopLoss' ? 'SL' : 'TP',
             color: which === 'stopLoss' ? colors.loss : colors.profit,
-            action: { type: 'addStop', positionId: pos.id, which, price: start },
+            action: { type: 'addStop', positionId: pos.id, which, price: pos.entryPrice },
           });
         }
       }
