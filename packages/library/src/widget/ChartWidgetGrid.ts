@@ -69,8 +69,6 @@ export interface ChartWidgetGridOptions {
   layoutPickerInToolbar?: boolean;
   /** Show one drawing sidebar for the active chart. Default `false`. */
   sharedDrawingTools?: boolean;
-  /** Show one bottom status bar for the active chart. Default `false`. */
-  sharedStatusBar?: boolean;
   /** The chart in use changed (pressed, or the grid shrank). */
   onActiveChange?: (index: number, widget: ChartWidget) => void;
   /** A chart was made: at the start, and when the grid grows. Feed it data, add indicators… */
@@ -199,7 +197,7 @@ export class ChartWidgetGrid {
     this.cellsEl.className = 'tcw-grid-cells';
     workspace.appendChild(this.cellsEl);
     this.root.appendChild(workspace);
-    if (options.sharedStatusBar) {
+    if (options.sharedDrawingTools) {
       this.sharedStatusBarEl = document.createElement('div');
       this.sharedStatusBarEl.className = 'tcw-grid-shared-statusbar';
       this.root.appendChild(this.sharedStatusBarEl);
