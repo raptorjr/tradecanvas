@@ -519,6 +519,7 @@ export class ChartWidgetGrid {
     cell.widget = widget;
     cell.widgetRoot = el.querySelector<HTMLElement>('.tcw-root');
     cell.toolbar = cell.widgetRoot?.querySelector<HTMLElement>('.tcw-toolbar') ?? null;
+    if (cell.toolbar) cell.toolbar.dataset.tcwGridCell = String(index);
     cell.replayButton = cell.toolbar?.querySelector<HTMLElement>('[data-role="replay"]') ?? null;
     // Style overrides given to the grid since, for a chart it adds too.
     if (Object.keys(this.styleOverrides).length > 0) widget.getChart().applyOverrides(this.styleOverrides);
@@ -692,7 +693,9 @@ export class ChartWidgetGrid {
         // live elements on every sync instead of trusting references captured
         // only once when the cell was first created.
         const widgetRoot = cell.el.querySelector<HTMLElement>('.tcw-root') ?? cell.widgetRoot;
-        const toolbar = widgetRoot?.querySelector<HTMLElement>('.tcw-toolbar') ?? cell.toolbar;
+        const toolbar = widgetRoot?.querySelector<HTMLElement>('.tcw-toolbar')
+          ?? this.sharedToolbarEl?.querySelector<HTMLElement>(`.tcw-toolbar[data-tcw-grid-cell="${index}"]`)
+          ?? cell.toolbar;
         if (!toolbar) return;
         cell.widgetRoot = widgetRoot;
         cell.toolbar = toolbar;
