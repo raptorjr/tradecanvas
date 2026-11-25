@@ -680,6 +680,7 @@ export class ChartWidgetGrid {
           if (this.options.layoutPickerInToolbar && this.layoutPicker) {
             const replayButton = toolbar.querySelector('[data-role="replay"]');
             if (replayButton && replayButton !== this.layoutPicker.button) replayButton.replaceWith(this.layoutPicker.button);
+            this.layoutPicker.button.classList.add('tcw-toolbar-overflow');
           }
         } else {
           if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
