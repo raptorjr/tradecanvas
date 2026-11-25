@@ -93,21 +93,41 @@ afterEach(() => {
 });
 
 describe('ChartWidgetGrid', () => {
-  it('puts the layout picker in the shared toolbar in place of replay', () => {
+  it('keeps the layout picker permanently in the shared toolbar as active charts change', () => {
     make({ bar: false, sharedToolbar: true, layoutPickerInToolbar: true, layouts: false });
     const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
-    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
-    expect(grid.getWidget(0)?.isFeatureOn('toolbar.replay')).toBe(true);
-    expect(sharedToolbar?.querySelector('[data-role="replay"]')).toBeNull();
+    const picker = sharedToolbar?.querySelector('.tcw-grid-layout-btn');
+    expect(picker).not.toBeNull();
+    expect(picker?.parentElement).toBe(sharedToolbar);
 
     grid.setActive(1);
-    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
-    expect(sharedToolbar?.querySelector('[data-role="replay"]')).toBeNull();
+    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
+    expect(picker?.parentElement).toBe(sharedToolbar);
 
+    grid.setActive(0);
+    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
     layoutButton().click();
     host.querySelector<HTMLButtonElement>('.tcw-grid-picker [role="menuitemradio"][aria-label="4 charts, 2 across and 2 down"]')!.click();
     expect(grid.getLayout()).toBe('2x2');
-    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).not.toBeNull();
+    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
+  });
+
+  it('shows only the active chart drawing sidebar and status bar in the shared rails', () => {
+    make({ sharedDrawingTools: true });
+    const drawingRail = host.querySelector('.tcw-grid-shared-drawing-tools');
+    const statusRail = host.querySelector('.tcw-grid-shared-statusbar');
+    expect(drawingRail?.querySelectorAll('.tcw-sidebar')).toHaveLength(1);
+    expect(statusRail?.querySelectorAll('.tcw-statusbar')).toHaveLength(1);
+
+    grid.setActive(1);
+    expect(drawingRail?.querySelectorAll('.tcw-sidebar')).toHaveLength(1);
+    expect(statusRail?.querySelectorAll('.tcw-statusbar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar:not([hidden])')).toHaveLength(0);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-statusbar:not([hidden])')).toHaveLength(0);
+
+    grid.setActive(0);
+    expect(drawingRail?.querySelectorAll('.tcw-sidebar')).toHaveLength(1);
+    expect(statusRail?.querySelectorAll('.tcw-statusbar')).toHaveLength(1);
   });
 
   it('opens two charts side by side, each with its own symbol, the first one active', () => {
@@ -245,11 +265,13 @@ describe('ChartWidgetGrid', () => {
     expect(grid.getActiveWidget()).toBe(grid.getWidget(1));
   });
 
-  it('shows drawing tools only for the active chart in shared drawing-tools mode', () => {
+  it('shows the drawing sidebar only once in shared drawing-tools mode', () => {
     make({ sharedDrawingTools: true });
-    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([true, false]);
+    expect(host.querySelectorAll('.tcw-grid-shared-drawing-tools > .tcw-sidebar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar:not([hidden])')).toHaveLength(0);
     grid.setActive(1);
-    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([false, true]);
+    expect(host.querySelectorAll('.tcw-grid-shared-drawing-tools > .tcw-sidebar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar:not([hidden])')).toHaveLength(0);
   });
 
   it('passes a symbol on only when symbols are synced', async () => {

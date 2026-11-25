@@ -121,6 +121,8 @@ export class ChartWidgetGrid {
   private root: HTMLDivElement;
   private cellsEl: HTMLDivElement;
   private sharedToolbarEl: HTMLDivElement | null = null;
+  private sharedDrawingToolsEl: HTMLDivElement | null = null;
+  private sharedStatusBarEl: HTMLDivElement | null = null;
   private cells: Cell[] = [];
   private layout: GridLayout;
   private sync: WidgetGridSync;
@@ -179,11 +181,27 @@ export class ChartWidgetGrid {
     if (options.sharedToolbar) {
       this.sharedToolbarEl = document.createElement('div');
       this.sharedToolbarEl.className = 'tcw-grid-active-toolbar';
+      if (this.options.layoutPickerInToolbar && this.layoutPicker) {
+        this.sharedToolbarEl.appendChild(this.layoutPicker.button);
+      }
       this.root.appendChild(this.sharedToolbarEl);
+    }
+    const workspace = document.createElement('div');
+    workspace.className = 'tcw-grid-workspace';
+    if (options.sharedDrawingTools) {
+      this.sharedDrawingToolsEl = document.createElement('div');
+      this.sharedDrawingToolsEl.className = 'tcw-grid-shared-drawing-tools';
+      workspace.appendChild(this.sharedDrawingToolsEl);
     }
     this.cellsEl = document.createElement('div');
     this.cellsEl.className = 'tcw-grid-cells';
-    this.root.appendChild(this.cellsEl);
+    workspace.appendChild(this.cellsEl);
+    this.root.appendChild(workspace);
+    if (options.sharedDrawingTools) {
+      this.sharedStatusBarEl = document.createElement('div');
+      this.sharedStatusBarEl.className = 'tcw-grid-shared-statusbar';
+      this.root.appendChild(this.sharedStatusBarEl);
+    }
     container.appendChild(this.root);
     // Narrow, one chart at a time, picked by its tab.
     this.stopNarrow = watchNarrow(this.root);
@@ -666,25 +684,31 @@ export class ChartWidgetGrid {
   /** Keep only the active chart's native TradeCanvas toolbar in the shared row. */
   private syncSharedToolbar(): void {
     if (this.sharedToolbarEl) {
+      if (this.options.layoutPickerInToolbar && this.layoutPicker?.button.parentElement !== this.sharedToolbarEl) {
+        this.sharedToolbarEl.prepend(this.layoutPicker!.button);
+      }
       this.cells.forEach((cell, index) => {
         const toolbar = cell.toolbar;
         if (!toolbar) return;
         if (index === this.active) {
           toolbar.hidden = false;
           if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
-          if (this.options.layoutPickerInToolbar && this.layoutPicker) {
-            const replayButton = toolbar.querySelector('[data-role="replay"]');
-            if (replayButton && replayButton !== this.layoutPicker.button) replayButton.replaceWith(this.layoutPicker.button);
-            this.layoutPicker.button.classList.add('tcw-toolbar-overflow');
-          }
+
         } else {
           if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
           toolbar.hidden = true;
         }
       });
     }
-    if (this.options.sharedDrawingTools) {
-      this.cells.forEach((cell, index) => cell.widget.setFeatures({ sidebar: index === this.active }));
+    if (this.sharedDrawingToolsEl) {
+      this.cells.forEach((cell, index) => {
+        cell.widget.moveDrawingToolsTo(index === this.active ? this.sharedDrawingToolsEl : null, index === this.active);
+      });
+    }
+    if (this.sharedStatusBarEl) {
+      this.cells.forEach((cell, index) => {
+        cell.widget.moveStatusBarTo(index === this.active ? this.sharedStatusBarEl : null, index === this.active);
+      });
     }
   }
 

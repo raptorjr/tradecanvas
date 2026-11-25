@@ -2606,6 +2606,16 @@ export class ChartWidget {
     }
   }
 
+  /** Move this chart's drawing tools into a grid-level shared rail, or back to its own body. */
+  moveDrawingToolsTo(host: HTMLElement | null, visible = true): void {
+    this.sidebar?.moveTo(host, visible);
+  }
+
+  /** Move this chart's bottom status bar into a grid-level shared row, or back to its own root. */
+  moveStatusBarTo(host: HTMLElement | null, visible = true): void {
+    this.statusBar?.moveTo(host, visible);
+  }
+
   /** Open or close the account panel (no argument: the other way from now). */
   toggleAccountPanel(open?: boolean): void {
     return this.trading.toggleAccountPanel(open);
