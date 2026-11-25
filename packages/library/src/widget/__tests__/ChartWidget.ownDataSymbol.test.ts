@@ -32,6 +32,14 @@ class FakeChart {
     this.data = data;
   }
 
+  appendBar(bar: OHLCBar): void {
+    this.data.push(bar);
+  }
+
+  updateLastBar(bar: OHLCBar): void {
+    this.data[this.data.length - 1] = bar;
+  }
+
   getSymbolInfo(): null {
     return null;
   }
@@ -92,6 +100,50 @@ describe('the legend of a widget fed its own bars', () => {
     widget = new ChartWidget(host, { symbol: 'DEMO', timeframe: '1d', watchlist: false });
     await widget.setSymbol('ACME');
     expect(FakeChart.last.legendNames.at(-1)).toBe('ACME');
+  });
+
+
+  it('keeps its base series in sync when replay appends bars to a coarser timeframe', () => {
+    widget = new ChartWidget(host, { symbol: 'DEMO', timeframe: '5m', watchlist: false });
+    const bars: OHLCBar[] = Array.from({ length: 5 }, (_, index) => ({
+      time: index * 60_000,
+      open: 100 + index,
+      high: 101 + index,
+      low: 99 + index,
+      close: 100.5 + index,
+      volume: 10,
+    }));
+    widget.setData([bars[0]], '1m');
+    expect(FakeChart.last.data).toHaveLength(1);
+    bars.slice(1).forEach(bar => widget.appendDataBar(bar));
+    expect(FakeChart.last.data).toHaveLength(1);
+    expect(FakeChart.last.data[0]).toMatchObject({
+      time: 0,
+      open: 100,
+      high: 105,
+      low: 99,
+      close: 104.5,
+      volume: 50,
+    });
+
+    widget.appendDataBar({
+      time: 5 * 60_000,
+      open: 105,
+      high: 107,
+      low: 104,
+      close: 106,
+      volume: 20,
+    });
+
+    expect(FakeChart.last.data).toHaveLength(2);
+    expect(FakeChart.last.data[1]).toMatchObject({
+      time: 5 * 60_000,
+      open: 105,
+      high: 107,
+      low: 104,
+      close: 106,
+      volume: 20,
+    });
   });
 
   it('leaves the name to the stream when there is one', () => {

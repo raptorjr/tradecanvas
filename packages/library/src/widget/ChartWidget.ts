@@ -2759,14 +2759,55 @@ export class ChartWidget {
    * aggregate from. The data is rendered at the current timeframe (resampled
    * when that timeframe is coarser than the data's native spacing).
    */
-  setData(data: DataSeries): void {
+  setData(data: DataSeries, baseTimeframe?: TimeFrame): void {
     this.localSeq++; // supersedes a local switch still waiting to run
     this.baseSeries = data;
-    this.baseTimeframeMs = inferTimeframeMs(data);
+    this.baseTimeframeMs = baseTimeframe ? timeframeToMs(baseTimeframe) : inferTimeframeMs(data);
     this.applyTimeframeData();
     // Static data is loaded the moment it's set, even an empty series. With a
     // live adapter the stream's own load decides (connectStream).
     if (!this.adapter) this.loading.end();
+  }
+
+  /**
+   * Append one bar to the host-owned base series without losing the widget's
+   * resampling source. When the displayed interval is coarser, only the last
+   * displayed bar is updated or one new aggregate is appended.
+   */
+  appendDataBar(bar: OHLCBar): void {
+    if (!this.baseSeries?.length) {
+      this.setData([bar]);
+      return;
+    }
+    const lastBase = this.baseSeries[this.baseSeries.length - 1];
+    const replacingLast = bar.time === lastBase.time;
+    if (bar.time < lastBase.time) {
+      this.setData([...this.baseSeries.filter((item) => item.time !== bar.time), bar].sort((a, b) => a.time - b.time));
+      return;
+    }
+    if (replacingLast) this.baseSeries[this.baseSeries.length - 1] = bar;
+    else this.baseSeries.push(bar);
+
+    const targetMs = timeframeToMs(this.state.timeframe);
+    if (this.baseTimeframeMs > 0 && targetMs > this.baseTimeframeMs) {
+      const zone = this.chart.getExchangeTimeZone() ?? null;
+      const next = resampleOHLCV(this.baseSeries, this.state.timeframe, this.resampleOptions(zone));
+      const current = this.chart.getData();
+      if (next.length === current.length && next.length > 0
+        && next[next.length - 1].time === current[current.length - 1].time) {
+        this.chart.updateLastBar(next[next.length - 1]);
+      } else if (next.length === current.length + 1 && current.length > 0
+        && next[current.length - 1].time === current[current.length - 1].time) {
+        this.chart.updateLastBar(next[current.length - 1]);
+        this.chart.appendBar(next[next.length - 1]);
+      } else {
+        this.chart.setData(next);
+      }
+      this.builtInZone = zone;
+      return;
+    }
+    if (replacingLast) this.chart.updateLastBar(bar);
+    else this.chart.appendBar(bar);
   }
 
   /**

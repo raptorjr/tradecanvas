@@ -7287,6 +7287,18 @@
         "kind": "boolean"
       },
       {
+        "name": "sharedToolbar",
+        "type": "boolean",
+        "doc": "Move the active chart's native toolbar into one shared row above the grid. Default `false`.",
+        "kind": "boolean"
+      },
+      {
+        "name": "sharedDrawingTools",
+        "type": "boolean",
+        "doc": "Show the drawing sidebar only on the active chart. Default `false`.",
+        "kind": "boolean"
+      },
+      {
         "name": "onActiveChange",
         "type": "(index: number, widget: ChartWidget) => void",
         "doc": "The chart in use changed (pressed, or the grid shrank).",

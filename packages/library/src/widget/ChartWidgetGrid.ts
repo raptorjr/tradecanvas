@@ -63,6 +63,10 @@ export interface ChartWidgetGridOptions {
   layouts?: boolean | WidgetLayoutsOptions;
   /** The bar above the charts: arrangement, sync, layouts. Default `true`. */
   bar?: boolean;
+  /** Move the active chart's native toolbar into one shared row above the grid. Default `false`. */
+  sharedToolbar?: boolean;
+  /** Show the drawing sidebar only on the active chart. Default `false`. */
+  sharedDrawingTools?: boolean;
   /** The chart in use changed (pressed, or the grid shrank). */
   onActiveChange?: (index: number, widget: ChartWidget) => void;
   /** A chart was made: at the start, and when the grid grows. Feed it data, add indicators… */
@@ -82,6 +86,8 @@ export interface WidgetGridLayoutContent {
 interface Cell {
   el: HTMLDivElement;
   widget: ChartWidget;
+  widgetRoot: HTMLElement | null;
+  toolbar: HTMLElement | null;
 }
 
 /** A detached copy of plain data (drawings): charts must not share objects they change in place. */
@@ -112,6 +118,7 @@ export function readGridLayout(value: unknown): WidgetGridLayoutContent | null {
 export class ChartWidgetGrid {
   private root: HTMLDivElement;
   private cellsEl: HTMLDivElement;
+  private sharedToolbarEl: HTMLDivElement | null = null;
   private cells: Cell[] = [];
   private layout: GridLayout;
   private sync: WidgetGridSync;
@@ -163,6 +170,11 @@ export class ChartWidgetGrid {
     this.root.dataset.tcwTheme = options.widget?.theme === 'light' ? 'light' : 'dark';
     applyWidgetUI(this.root, resolveWidgetUI(options.widget?.ui), { variables: options.widget?.ui !== undefined });
     if (options.bar !== false) this.root.appendChild(this.buildBar());
+    if (options.sharedToolbar) {
+      this.sharedToolbarEl = document.createElement('div');
+      this.sharedToolbarEl.className = 'tcw-grid-active-toolbar';
+      this.root.appendChild(this.sharedToolbarEl);
+    }
     this.cellsEl = document.createElement('div');
     this.cellsEl.className = 'tcw-grid-cells';
     this.root.appendChild(this.cellsEl);
@@ -235,8 +247,28 @@ export class ChartWidgetGrid {
    */
   setLayout(layout: GridLayout): void {
     if (layout === this.layout || !isGridLayout(layout)) return;
+    const count = gridChartCount(GRID_LAYOUT_SHAPES[layout]);
+    // RR Metrics' single-chart view is an expansion of the active chart, not
+    // a reset to cell zero. Park the other charts in their current relative
+    // order so growing the grid brings every chart back with its own state.
+    if (count === 1 && this.cells.length > 1) {
+      const activeCell = this.cells[this.active];
+      const otherLayouts = this.cells
+        .filter((_, index) => index !== this.active)
+        .map((cell) => cell.widget.captureLayout());
+      const previouslyParked = [...this.parked.entries()]
+        .sort(([a], [b]) => a - b)
+        .map(([, saved]) => saved);
+      for (const cell of this.cells) {
+        if (cell !== activeCell) this.destroyCell(cell);
+      }
+      this.cells = [activeCell];
+      this.parked.clear();
+      [...otherLayouts, ...previouslyParked].forEach((saved, index) => this.parked.set(index + 1, saved));
+      this.active = 0;
+      this.options.onActiveChange?.(0, activeCell.widget);
+    }
     this.layout = layout;
-    const count = this.shapeCount();
     while (this.cells.length > count) {
       const index = this.cells.length - 1;
       const cell = this.cells.pop()!;
@@ -459,6 +491,8 @@ export class ChartWidgetGrid {
     });
     cell.el = el;
     cell.widget = widget;
+    cell.widgetRoot = el.querySelector<HTMLElement>('.tcw-root');
+    cell.toolbar = cell.widgetRoot?.querySelector<HTMLElement>('.tcw-toolbar') ?? null;
     // Style overrides given to the grid since, for a chart it adds too.
     if (Object.keys(this.styleOverrides).length > 0) widget.getChart().applyOverrides(this.styleOverrides);
     // And the switches.
@@ -619,7 +653,28 @@ export class ChartWidgetGrid {
       // The one a narrow grid shows.
       c.el.classList.toggle('tcw-grid-cell-current', i === this.active);
     });
+    this.syncSharedToolbar();
     this.renderTabs();
+  }
+
+  /** Keep only the active chart's native TradeCanvas toolbar in the shared row. */
+  private syncSharedToolbar(): void {
+    if (this.sharedToolbarEl) {
+      this.cells.forEach((cell, index) => {
+        const toolbar = cell.toolbar;
+        if (!toolbar) return;
+        if (index === this.active) {
+          toolbar.hidden = false;
+          if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
+        } else {
+          if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
+          toolbar.hidden = true;
+        }
+      });
+    }
+    if (this.options.sharedDrawingTools) {
+      this.cells.forEach((cell, index) => cell.widget.setFeatures({ sidebar: index === this.active }));
+    }
   }
 
   /** A tab per chart, its symbol and interval: the active one pressed. */

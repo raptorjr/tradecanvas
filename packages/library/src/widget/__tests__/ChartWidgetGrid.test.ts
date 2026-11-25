@@ -115,9 +115,11 @@ describe('ChartWidgetGrid', () => {
     expect(grid.getLayout()).toBe('2x2');
     grid.setActive(3);
     pick('One chart');
-    expect(symbols()).toEqual(['AAA']);
+    expect(symbols()).toEqual(['DDD']);
     expect(grid.getActiveIndex()).toBe(0);
     expect(changes).toEqual([3, 0]);
+    grid.setLayout('2x2');
+    expect(symbols()).toEqual(['DDD', 'AAA', 'BBB', 'CCC']);
   });
 
   it('gives every chart the style overrides, and the charts it adds later too', () => {
@@ -213,6 +215,24 @@ describe('ChartWidgetGrid', () => {
     make();
     host.querySelectorAll('.tcw-grid-cell')[1].dispatchEvent(new Event('pointerdown'));
     expect(grid.getActiveIndex()).toBe(1);
+  });
+
+  it('shows one native toolbar for the active chart when shared toolbar mode is enabled', () => {
+    make({ sharedToolbar: true });
+    const shared = host.querySelector('.tcw-grid-active-toolbar');
+    expect(shared?.querySelectorAll('.tcw-toolbar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-toolbar[hidden]')).toHaveLength(1);
+    grid.setActive(1);
+    expect(shared?.querySelectorAll('.tcw-toolbar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-toolbar[hidden]')).toHaveLength(1);
+    expect(grid.getActiveWidget()).toBe(grid.getWidget(1));
+  });
+
+  it('shows drawing tools only for the active chart in shared drawing-tools mode', () => {
+    make({ sharedDrawingTools: true });
+    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([true, false]);
+    grid.setActive(1);
+    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([false, true]);
   });
 
   it('passes a symbol on only when symbols are synced', async () => {
