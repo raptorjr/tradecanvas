@@ -113,7 +113,7 @@ describe('ChartWidgetGrid', () => {
   });
 
   it('shares one drawing sidebar and one status bar with the active chart', () => {
-    make({ sharedDrawingTools: true, sharedStatusBar: true });
+    make({ sharedDrawingTools: true });
     const drawingRail = host.querySelector('.tcw-grid-shared-drawing-tools');
     const statusRail = host.querySelector('.tcw-grid-shared-statusbar');
     const sidebar = drawingRail?.querySelector('.tcw-sidebar');
