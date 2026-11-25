@@ -103,6 +103,18 @@ describe('ChartWidgetGrid', () => {
     expect(picker).toBeTruthy();
     expect(picker.parentElement).toBe(toolbars[0]);
     expect(replayButtons[0]?.parentElement).not.toBe(toolbars[0]);
+
+    // Simulate lost cached references (for example after widget chrome is
+    // rebuilt). Synchronization must rediscover the live toolbar and Replay
+    // button rather than leaving the native button visible.
+    picker.replaceWith(replayButtons[0]!);
+    picker.remove();
+    const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
+    cells[0].toolbar = null;
+    cells[0].replayButton = null;
+    grid.setActive(0);
+    expect(picker.parentElement).toBe(toolbars[0]);
+    expect(replayButtons[0]?.parentElement).not.toBe(toolbars[0]);
     expect(replayButtons[1]?.parentElement).toBe(toolbars[1]);
 
     grid.setActive(1);
