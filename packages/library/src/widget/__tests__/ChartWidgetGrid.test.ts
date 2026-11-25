@@ -99,7 +99,7 @@ describe('ChartWidgetGrid', () => {
       sharedToolbar: true,
       layoutPickerInToolbar: true,
       layouts: false,
-      widget: { watchlist: false, features: { replay: true } },
+      widget: { watchlist: false, features: { replay: true }, onToggleReplay: () => {} },
     });
     const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
     const picker = host.querySelector<HTMLButtonElement>('.tcw-grid-layout-btn')!;
