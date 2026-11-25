@@ -94,7 +94,13 @@ afterEach(() => {
 
 describe('ChartWidgetGrid', () => {
   it('replaces the active chart replay button with the layout picker and restores it on chart switches', () => {
-    make({ bar: false, sharedToolbar: true, layoutPickerInToolbar: true, layouts: false });
+    make({
+      bar: false,
+      sharedToolbar: true,
+      layoutPickerInToolbar: true,
+      layouts: false,
+      widget: { watchlist: false, features: { replay: true } },
+    });
     const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
     const picker = host.querySelector<HTMLButtonElement>('.tcw-grid-layout-btn')!;
     const toolbars = [...host.querySelectorAll<HTMLElement>('.tcw-toolbar')];
@@ -107,6 +113,7 @@ describe('ChartWidgetGrid', () => {
     // Simulate lost cached references (for example after widget chrome is
     // rebuilt). Synchronization must rediscover the live toolbar and Replay
     // button rather than leaving the native button visible.
+    expect(replayButtons[0]).toBeTruthy();
     picker.replaceWith(replayButtons[0]!);
     picker.remove();
     const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
