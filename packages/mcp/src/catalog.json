@@ -4997,7 +4997,8 @@
             {
               "value": 0.786,
               "visible": true,
-              "color": "#5b6cf0"            },
+              "color": "#5b6cf0"
+            },
             {
               "value": 1,
               "visible": true,
@@ -5996,7 +5997,8 @@
     {
       "type": "elliottTriangle",
       "name": "Elliott Triangle Wave",
-      "anchors": 6,      "options": {
+      "anchors": 6,
+      "options": {
         "degree": {
           "kind": "choice",
           "label": "Degree",
@@ -6995,7 +6997,8 @@
       },
       {
         "name": "autoScale",
-        "type": "boolean",        "doc": "Fit the price axis to the bars on view as they move (default `true`). `false` holds the range on screen; each new series (the first bars, `setData`'s, a stream's symbol or timeframe switch) is still fitted once, and bars that come one by one into an empty chart until they fill it.",
+        "type": "boolean",
+        "doc": "Fit the price axis to the bars on view as they move (default `true`). `false` holds the range on screen; each new series (the first bars, `setData`'s, a stream's symbol or timeframe switch) is still fitted once, and bars that come one by one into an empty chart until they fill it.",
         "kind": "boolean"
       },
       {
@@ -7994,7 +7997,8 @@
           "doc": "Show the hovered slice's value and share. Default `true`.",
           "kind": "boolean"
         },
-        {          "name": "onSliceClick",
+        {
+          "name": "onSliceClick",
           "type": "(slice: DonutSlice) => void",
           "kind": "function"
         },
