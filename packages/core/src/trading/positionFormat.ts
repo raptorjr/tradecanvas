@@ -119,7 +119,8 @@ export function amountAt(
   pointValue = 1,
 ): number {
   const multiplier = Number.isFinite(pointValue) && pointValue > 0 ? pointValue : 1;
-  return (price - entryPrice) * quantity * (side === 'buy' ? 1 : -1) * multiplier;
+  const amount = (price - entryPrice) * quantity * (side === 'buy' ? 1 : -1) * multiplier;
+  return amount === 0 ? 0 : amount;
 }
 
 export const DEFAULT_POSITION_LABEL =
