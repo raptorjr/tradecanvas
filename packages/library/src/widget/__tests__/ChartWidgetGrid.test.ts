@@ -105,18 +105,19 @@ describe('ChartWidgetGrid', () => {
     const picker = host.querySelector<HTMLButtonElement>('.tcw-grid-layout-btn')!;
     const toolbars = [...host.querySelectorAll<HTMLElement>('.tcw-toolbar')];
     const replayButtons = toolbars.map(toolbar => toolbar.querySelector('[data-role="replay"]'));
+    const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
+    const originalReplayButton = cells[0].replayButton;
 
     expect(picker).toBeTruthy();
     expect(picker.parentElement).toBe(toolbars[0]);
-    expect(replayButtons[0]?.parentElement).not.toBe(toolbars[0]);
+    expect(originalReplayButton).toBeTruthy();
+    expect(originalReplayButton?.parentElement).not.toBe(toolbars[0]);
 
     // Simulate lost cached references (for example after widget chrome is
     // rebuilt). Synchronization must rediscover the live toolbar and Replay
     // button rather than leaving the native button visible.
-    expect(replayButtons[0]).toBeTruthy();
-    picker.replaceWith(replayButtons[0]!);
+    picker.replaceWith(originalReplayButton!);
     picker.remove();
-    const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
     cells[0].toolbar = null;
     cells[0].replayButton = null;
     // Force a real active-chart transition; setActive is intentionally a
