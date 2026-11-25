@@ -411,7 +411,7 @@ opens named, with kind tabs and an exchange filter (recipe in [references/recipe
 (watchlist, alerts, depth ladder…) start shut: `widget.openPanel('watchlist')`. Your own parts: `addToolbarButton`,
 `addToolbarDropdown`, `addSidebarButton`, `addStatusBarItem`, `getSlot('chart')`, `addHotkey`, a page in the
 dock with `addDockPage({ id, label, icon, element })` (the `onPanelChange` option says which panel is open), and
-the `chartMenuItems` / `drawingMenuItems` / `indicatorMenuItems` options. Style the widget with your
+the `chartMenuItems` / `drawingMenuItems` / `indicatorMenuItems` options. Host menu items can include a `submenu` of nested `WidgetMenuItem` entries; only the selected leaf calls its `onSelect` (use a no-op for the parent). Style the widget with your
 own CSS through `--tcw-*` variables and `[data-tcw-part~="name"]` (stable through 1.x).
 
 ## When something looks wrong

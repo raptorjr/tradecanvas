@@ -1171,6 +1171,7 @@ new ChartWidget(host, {
     ? [{ label: \`Copy \${price.toFixed(2)}\`, icon: 'check', onSelect: () => copy(price) }]
     : [],
 })`}</code></pre>
+<p>Host menu items can include a <code>submenu</code> of nested menu items. The selected leaf runs its <code>onSelect</code>; a parent with choices can use a no-op action.</p>
 <p>Also a menu button on the toolbar, buttons on the drawing sidebar, items on the status bar, places of your own in each bar and over the chart, and entries at the end of a drawing's or an indicator's menu (see <a href={href('/docs/customization#parts')}>Customization</a>):</p>
 <pre><code>{`widget.addToolbarDropdown({ id: 'scans', label: 'Scans', icon: 'layers', items: () => [...] })   // asked for each time it opens
 widget.addSidebarButton({ id: 'ruler', label: 'Ruler', icon: 'ruler', toggle: true, onClick })

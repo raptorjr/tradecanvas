@@ -1,5 +1,7 @@
 ## Unreleased
 
+- **Host menu submenus** (`@tradecanvas/chart`): a host's chart, drawing, indicator or toolbar menu items can offer nested choices with `WidgetMenuItem.submenu`. Only the selected leaf runs its action.
+
 - **A grid's controls stay shared as charts change** (`@tradecanvas/chart`): the layout picker has a permanent place beside the active chart's toolbar, and the drawing sidebar and bottom status bar can each appear once for the active chart instead of being repeated in every cell.
 
 # Changelog
