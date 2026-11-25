@@ -90,6 +90,8 @@ interface Cell {
   widget: ChartWidget;
   widgetRoot: HTMLElement | null;
   toolbar: HTMLElement | null;
+  /** The native replay button, restored whenever this chart is not active. */
+  replayButton: HTMLElement | null;
 }
 
 /** A detached copy of plain data (drawings): charts must not share objects they change in place. */
@@ -517,6 +519,7 @@ export class ChartWidgetGrid {
     cell.widget = widget;
     cell.widgetRoot = el.querySelector<HTMLElement>('.tcw-root');
     cell.toolbar = cell.widgetRoot?.querySelector<HTMLElement>('.tcw-toolbar') ?? null;
+    cell.replayButton = cell.toolbar?.querySelector<HTMLElement>('[data-role="replay"]') ?? null;
     // Style overrides given to the grid since, for a chart it adds too.
     if (Object.keys(this.styleOverrides).length > 0) widget.getChart().applyOverrides(this.styleOverrides);
     // And the switches.
@@ -681,20 +684,28 @@ export class ChartWidgetGrid {
     this.renderTabs();
   }
 
-  /** Keep only the active chart's native TradeCanvas toolbar in the shared row. */
+  /** Keep only the active chart's native toolbar in the shared row. */
   private syncSharedToolbar(): void {
     if (this.sharedToolbarEl) {
-      if (this.options.layoutPickerInToolbar && this.layoutPicker?.button.parentElement !== this.sharedToolbarEl) {
-        this.sharedToolbarEl.prepend(this.layoutPicker!.button);
-      }
       this.cells.forEach((cell, index) => {
         const toolbar = cell.toolbar;
         if (!toolbar) return;
         if (index === this.active) {
           toolbar.hidden = false;
+          if (this.options.layoutPickerInToolbar && this.layoutPicker && cell.replayButton) {
+            // The picker takes the replay button's exact slot in the active
+            // chart's toolbar (beside Objects), rather than adding a new bar.
+            if (this.layoutPicker.button.parentElement !== toolbar) {
+              cell.replayButton.replaceWith(this.layoutPicker.button);
+            }
+          }
           if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
-
         } else {
+          // Give an inactive chart its own replay button back before parking
+          // its toolbar. The single layout picker then follows the next chart.
+          if (this.options.layoutPickerInToolbar && this.layoutPicker?.button.parentElement === toolbar && cell.replayButton) {
+            this.layoutPicker.button.replaceWith(cell.replayButton);
+          }
           if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
           toolbar.hidden = true;
         }
