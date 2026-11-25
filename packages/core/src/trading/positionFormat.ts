@@ -19,7 +19,7 @@ export function buildPositionLabelContext(
   const closed = Math.min(Math.max(pos.closedQuantity ?? 0, 0), pos.quantity);
   const open = pos.quantity - closed;
   const direction = pos.side === 'buy' ? 1 : -1;
-  const pnl = (currentPrice - pos.entryPrice) * open * direction;
+  const pnl = amountAt(pos.side, pos.entryPrice, open, currentPrice, pos.pointValue);
   const pnlPct =
     pos.entryPrice === 0
       ? 0
@@ -76,9 +76,10 @@ export function formatPositionLabel(
  * locale. What rounds to nothing has no sign: a short at its entry is "0.00",
  * not "+-0.00".
  */
-export function formatAmount(value: number, precision: number, locale?: string): string {
+export function formatAmount(value: number, precision: number, locale?: string, currencySymbol?: string): string {
   const scale = 10 ** precision;
   const rounded = Math.round(value * scale) / scale || 0;
+  if (currencySymbol) return `${rounded < 0 ? '-' : rounded > 0 ? '+' : ''}${currencySymbol}${groupedNumber(Math.abs(rounded), precision, locale)}`;
   return `${rounded > 0 ? '+' : ''}${groupedNumber(rounded, precision, locale)}`;
 }
 
@@ -115,8 +116,11 @@ export function amountAt(
   entryPrice: number,
   quantity: number,
   price: number,
+  pointValue = 1,
 ): number {
-  return (price - entryPrice) * quantity * (side === 'buy' ? 1 : -1);
+  const multiplier = Number.isFinite(pointValue) && pointValue > 0 ? pointValue : 1;
+  const amount = (price - entryPrice) * quantity * (side === 'buy' ? 1 : -1) * multiplier;
+  return amount === 0 ? 0 : amount;
 }
 
 export const DEFAULT_POSITION_LABEL =

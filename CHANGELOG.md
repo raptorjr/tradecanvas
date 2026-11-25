@@ -1,5 +1,7 @@
 ## Unreleased
 
+- **Futures P&L on position and protective order labels** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): position `pointValue` scales displayed amounts per contract and `currencySymbol` optionally identifies the currency, including when dragging a stop or target.
+
 - **SL and TP handles drag from the position entry** (`@tradecanvas/core`, `@tradecanvas/chart`): a new protective level begins on its entry line and follows the pointer instead of jumping to a preset distance. A click without dragging does not create an order.
 
 - **Host menu submenus** (`@tradecanvas/chart`): a host's chart, drawing, indicator or toolbar menu items can offer nested choices with `WidgetMenuItem.submenu`. Only the selected leaf runs its action.

@@ -452,6 +452,8 @@ new Chart(host, { features: { marks: false } })            // or chart.setFeatur
   <code>{'{pnl}'}</code>, <code>{'{pnlPct}'}</code>, <code>{'{pnlSign}'}</code>.
 </p>
 
+<p>For futures, pass <code>pointValue</code> (money per point per contract) and optionally <code>currencySymbol</code> on each position passed to <code>setPositions</code>. Default position and protective-order amounts include the multiplier and remaining quantity. This affects chart labels, not broker execution or paper account accounting.</p>
+
 <h2>P&amp;L gradient stops</h2>
 <pre><code>{`chart.setTradingConfig({
   pnlThresholds: [
