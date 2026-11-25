@@ -1185,6 +1185,7 @@ new ChartWidget(host, {
 })`}</code></pre>
 
 <h2>ChartWidgetGrid</h2>
+<p>For a host supplying its own historical bars, <code>onChartSymbolChange(widget, symbol)</code> identifies the cell that needs data; <code>widget.setHostTimeframes(timeframes, fallback)</code> changes that cell's interval whitelist and menu. <code>onChartMenuItems(widget, context)</code> scopes host menu actions to the originating cell; <code>onChartUnpark(widget, index)</code> runs once a parked cell has restored.</p>
 <p>
   Several chart widgets side by side, each with its own symbol, interval,
   indicators and drawings. A bar above them picks the arrangement, links the

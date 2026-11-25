@@ -672,3 +672,13 @@ it('reports the exact chart changing symbol to a static-data grid host', async (
   expect(changes).toEqual([[second,'DDD']]);
   expect(first.getSymbol()).toBe('AAA');
 });
+
+
+it('notifies a static host when a parked cell finishes restoring', async () => {
+  const restored: number[]=[];
+  make({layout:'1x2',sync:{symbol:false},onChartUnpark:(_widget,index)=>restored.push(index)});
+  grid.setLayout('1x1');
+  grid.setLayout('1x2');
+  await nextFrame();await nextFrame();
+  expect(restored).toEqual([1]);
+});

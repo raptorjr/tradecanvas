@@ -77,6 +77,8 @@ export interface ChartWidgetGridOptions {
   onChartSymbolChange?: (widget: ChartWidget, symbol: string) => void;
   /** Host chart-menu actions scoped to the exact originating chart. */
   onChartMenuItems?: (widget: ChartWidget, context: ChartMenuItemsContext) => readonly WidgetMenuItem[];
+  /** A previously parked cell has finished restoring. */
+  onChartUnpark?: (widget: ChartWidget, index: number) => void;
 }
 
 /** What a grid's named layout holds. */
@@ -629,7 +631,9 @@ export class ChartWidgetGrid {
       ...(lead && this.sync.interval ? { timeframe: lead.getTimeframe() } : {}),
     };
     this.relayDepth++;
+    let restoredOk = false;
     cell.widget.restoreLayout(restored)
+      .then(() => { restoredOk = true; })
       .catch(() => cell.widget.toast(this.t('layouts.openFailed'), 'error'))
       .finally(() => {
         this.relayDepth--;
@@ -637,6 +641,7 @@ export class ChartWidgetGrid {
           const source = this.cells.find(c => c !== cell && c.widget.getSymbol() === cell.widget.getSymbol());
           if (source) this.copyDrawings(source);
         }
+        if (restoredOk && !this.destroyed && this.cells.includes(cell)) this.options.onChartUnpark?.(cell.widget, this.cells.indexOf(cell));
       });
   }
 

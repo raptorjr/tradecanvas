@@ -7320,6 +7320,24 @@
         "type": "(widget: ChartWidget, index: number) => void",
         "doc": "A chart was made: at the start, and when the grid grows. Feed it data, add indicators…",
         "kind": "function"
+      },
+      {
+        "name": "onChartSymbolChange",
+        "type": "(widget: ChartWidget, symbol: string) => void",
+        "doc": "Static-data hosts can supply the selected chart's series synchronously, before layout restoration continues.",
+        "kind": "function"
+      },
+      {
+        "name": "onChartMenuItems",
+        "type": "(widget: ChartWidget, context: ChartMenuItemsContext) => readonly WidgetMenuItem[]",
+        "doc": "Host chart-menu actions scoped to the exact originating chart.",
+        "kind": "function"
+      },
+      {
+        "name": "onChartUnpark",
+        "type": "(widget: ChartWidget, index: number) => void",
+        "doc": "A previously parked cell has finished restoring.",
+        "kind": "function"
       }
     ]
   },
