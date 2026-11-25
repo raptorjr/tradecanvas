@@ -352,13 +352,13 @@ export class TradingManager {
 
   /**
    * Start dragging out the stop or target an SL or TP button adds, from where
-   * it starts: the line keeps its distance from the pointer, as a tag's does.
+   * the entry line. Only the small offset within the button is preserved.
    */
   private dragOutStop(action: Extract<LineButtonAction, { type: 'addStop' }>, pos: Point, viewport: ViewportState): boolean {
     const position = this.positions.find((p) => p.id === action.positionId);
-    // The drag is measured on the line, as a tag's is: the pointer only moves it.
-    const lineY = priceToY(action.price, viewport);
-    if (!position || !this.dragHandler.beginNewStop(position, action.which, action.price, lineY)) return false;
+    if (!position || this.locked) return false;
+    const lineY = priceToY(position.entryPrice, viewport);
+    if (!this.dragHandler.beginNewStop(position, action.which, position.entryPrice, lineY)) return false;
     this.grabOffset = lineY - pos.y;
     this.requestRender?.();
     return true;
@@ -389,7 +389,7 @@ export class TradingManager {
   onPointerMove(pointer: Point, viewport: ViewportState): boolean {
     if (this.armed) return true;
     // Dragged by its tag, the line keeps its distance from the pointer, and stays on the plot.
-    const pos = this.grabOffset === 0 ? pointer : { x: pointer.x, y: clampToPlot(pointer.y + this.grabOffset, viewport) };
+    const pos = this.grabOffset === 0 && !this.dragHandler.getDragState()?.created ? pointer : { x: pointer.x, y: clampToPlot(pointer.y + this.grabOffset, viewport) };
     if (this.bracket.isDragging()) {
       const consumed = this.bracket.drag(pos, viewport);
       if (consumed) this.requestRender?.();
@@ -426,6 +426,7 @@ export class TradingManager {
       this.requestRender?.();
       return true;
     }
+    const hadDrag = this.dragHandler.isActive();
     const result = this.dragHandler.onPointerUp();
     if (result) {
       if (result.sourceType === 'order') {
@@ -443,7 +444,8 @@ export class TradingManager {
       this.requestRender?.();
       return true;
     }
-    return false;
+    if (hadDrag) this.requestRender?.();
+    return hadDrag;
   }
 
   /**

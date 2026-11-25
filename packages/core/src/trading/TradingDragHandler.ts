@@ -58,7 +58,7 @@ export class TradingDragHandler {
 
   /**
    * Drag out a stop or a target `position` has not got, from `price`, pressed
-   * at `y`. Let go where it was pressed, it is set at `price`.
+   * at `y`. A click without movement leaves the position unchanged.
    */
   beginNewStop(position: TradingPosition, which: 'stopLoss' | 'takeProfit', price: number, y: number): boolean {
     if (position[which] !== undefined || !Number.isFinite(price)) return false;
@@ -89,8 +89,8 @@ export class TradingDragHandler {
     const state = this.dragState;
     this.dragState = null;
 
-    // A press that never moved changes nothing, but a stop being added is set where it started.
-    if (!this.dragging && !state.created) return null;
+    // A press that never moved changes nothing, including a new stop or target.
+    if (!this.dragging) return null;
     this.dragging = false;
 
     return {
