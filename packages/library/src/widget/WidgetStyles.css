@@ -5369,3 +5369,28 @@
   flex: 1;
   min-width: 0;
 }
+
+
+/* One drawing rail and one bottom bar belong to the grid, not to each chart cell. */
+.tcw-grid-workspace {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.tcw-grid-workspace > .tcw-grid-cells {
+  flex: 1;
+  min-width: 0;
+}
+.tcw-grid-shared-drawing-tools {
+  display: flex;
+  flex: none;
+  min-height: 0;
+  background: var(--tcw-bg-surface);
+}
+.tcw-grid-shared-drawing-tools > .tcw-sidebar {
+  height: 100%;
+}
+.tcw-grid-shared-statusbar > .tcw-statusbar {
+  width: 100%;
+}
