@@ -5357,3 +5357,15 @@
     min-height: 44px;
   }
 }
+
+
+/* A grid's layout picker has its own place: it must not depend on a chart toolbar button. */
+.tcw-grid-active-toolbar {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+.tcw-grid-active-toolbar > .tcw-toolbar {
+  flex: 1;
+  min-width: 0;
+}
