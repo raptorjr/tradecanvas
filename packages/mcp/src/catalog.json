@@ -7293,6 +7293,12 @@
         "kind": "boolean"
       },
       {
+        "name": "layoutPickerInToolbar",
+        "type": "boolean",
+        "doc": "Put the arrangement picker in place of the replay button in the shared toolbar. Requires `sharedToolbar`; hides each chart's replay button. Default `false`.",
+        "kind": "boolean"
+      },
+      {
         "name": "sharedDrawingTools",
         "type": "boolean",
         "doc": "Show the drawing sidebar only on the active chart. Default `false`.",

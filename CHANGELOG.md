@@ -4,6 +4,8 @@
 
 ### Chart
 
+- **A grid's layout picker in the shared chart toolbar** (`@tradecanvas/chart`): `ChartWidgetGrid` can put its arrangement picker where the active chart's replay button was, hiding the per-chart replay buttons. Use `layoutPickerInToolbar: true` with `sharedToolbar: true` and `bar: false` when the host app owns replay controls.
+
 - **A chart of values too near each other to scale no longer takes the page with it** (`@tradecanvas/core`, `@tradecanvas/chart`): an `EquityCurveChart` whose curve and benchmark were flat at nearly the same value (a run with no trade beside a market that never moved, the benchmark rescaled to the curve's start, so 100,000 beside 100,000.00000000001) threw "RangeError: Invalid array length" while it drew, after holding the page's thread. The step of its value axis was smaller than such values can be told apart by, and the loop that makes the ticks never ended. A range that narrow is now drawn as one value, with room above and below, in every finance chart that scales its values (`niceScale`).
 
 ## 2.17.1 (2026-11-23)

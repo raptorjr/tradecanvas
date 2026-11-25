@@ -65,6 +65,8 @@ export interface ChartWidgetGridOptions {
   bar?: boolean;
   /** Move the active chart's native toolbar into one shared row above the grid. Default `false`. */
   sharedToolbar?: boolean;
+  /** Put the arrangement picker in place of the replay button in the shared toolbar. Requires `sharedToolbar`; hides each chart's replay button. Default `false`. */
+  layoutPickerInToolbar?: boolean;
   /** Show the drawing sidebar only on the active chart. Default `false`. */
   sharedDrawingTools?: boolean;
   /** The chart in use changed (pressed, or the grid shrank). */
@@ -160,6 +162,9 @@ export class ChartWidgetGrid {
   constructor(container: HTMLElement, private readonly options: ChartWidgetGridOptions = {}) {
     this.layout = isGridLayout(options.layout) ? options.layout : '1x2';
     this.sync = { ...DEFAULT_GRID_SYNC, ...options.sync };
+    if (options.layoutPickerInToolbar && !options.sharedToolbar) {
+      throw new Error('layoutPickerInToolbar requires sharedToolbar.');
+    }
     this.t = createTranslator(resolveMessages(options.widget?.locale, options.widget?.messages));
     injectWidgetStyles();
 
@@ -170,6 +175,7 @@ export class ChartWidgetGrid {
     this.root.dataset.tcwTheme = options.widget?.theme === 'light' ? 'light' : 'dark';
     applyWidgetUI(this.root, resolveWidgetUI(options.widget?.ui), { variables: options.widget?.ui !== undefined });
     if (options.bar !== false) this.root.appendChild(this.buildBar());
+    if (options.layoutPickerInToolbar && !this.layoutPicker) this.layoutPicker = this.createLayoutPicker();
     if (options.sharedToolbar) {
       this.sharedToolbarEl = document.createElement('div');
       this.sharedToolbarEl.className = 'tcw-grid-active-toolbar';
@@ -666,6 +672,11 @@ export class ChartWidgetGrid {
         if (index === this.active) {
           toolbar.hidden = false;
           if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
+          if (this.options.layoutPickerInToolbar && this.layoutPicker) {
+            const replayButton = toolbar.querySelector('[data-role="replay"]');
+            if (replayButton && replayButton !== this.layoutPicker.button) replayButton.replaceWith(this.layoutPicker.button);
+            this.layoutPicker.button.classList.add('tcw-toolbar-overflow');
+          }
         } else {
           if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
           toolbar.hidden = true;
@@ -719,16 +730,9 @@ export class ChartWidgetGrid {
     shapes.className = 'tcw-grid-group';
     shapes.setAttribute('role', 'group');
     shapes.setAttribute('aria-label', this.t('grid.layout'));
-    const choices = this.options.layoutChoices?.filter(isGridLayout) ?? GRID_LAYOUTS;
-    if (choices.length > 0) {
-      this.layoutPicker = new GridLayoutPicker({
-        host: this.root,
-        t: this.t,
-        choices,
-        current: () => this.layout,
-        onPick: (layout) => this.setLayout(layout),
-      });
-      shapes.appendChild(this.layoutPicker.button);
+    if (!this.options.layoutPickerInToolbar) {
+      this.layoutPicker = this.createLayoutPicker();
+      if (this.layoutPicker) shapes.appendChild(this.layoutPicker.button);
     }
     // The arrangement before the charts' tabs: narrow, nine tabs would push it off the bar's end.
     bar.appendChild(shapes);
@@ -769,6 +773,19 @@ export class ChartWidgetGrid {
     }
     this.renderBar();
     return bar;
+  }
+
+  /** Make the arrangement picker once, whether it lives on the grid bar or in the shared toolbar. */
+  private createLayoutPicker(): GridLayoutPicker | null {
+    const choices = this.options.layoutChoices?.filter(isGridLayout) ?? GRID_LAYOUTS;
+    if (choices.length === 0) return null;
+    return new GridLayoutPicker({
+      host: this.root,
+      t: this.t,
+      choices,
+      current: () => this.layout,
+      onPick: (layout) => this.setLayout(layout),
+    });
   }
 
   private sep(): HTMLSpanElement {
