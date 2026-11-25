@@ -25,6 +25,7 @@ class FakeChart {
   getIndicatorPanes(): unknown[] { return []; }
   getLegendBottom(): number { return 40; }
   isTimeAligned(): boolean { return true; }
+  setFeatures(patch: Partial<NonNullable<ChartOptions['features']>>): void { this.options.features = {...this.options.features,...patch}; }
   isTimeframeAllowed(tf: TimeFrame): boolean {
     const allowed = this.options.features?.timeframes ?? [];
     return allowed.length === 0 || allowed.includes(tf);
@@ -141,3 +142,16 @@ describe('ChartWidget range bar and timeframes', () => {
   });
 });
 
+
+
+it('replaces the host interval whitelist and falls back only if the current interval is unsupported', async () => {
+  widget = new ChartWidget(host, {symbol:'AAA',timeframe:'1m',watchlist:false});
+  await widget.setHostTimeframes(['5m','15m'],'5m');
+  expect(widget.getTimeframe()).toBe('5m');
+  await widget.setTimeframe('1m');
+  expect(widget.getTimeframe()).toBe('5m');
+  await widget.setHostTimeframes(['1m','5m','15m'],'1m');
+  expect(widget.getTimeframe()).toBe('5m');
+  await widget.setTimeframe('1m');
+  expect(widget.getTimeframe()).toBe('1m');
+});

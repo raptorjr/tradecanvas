@@ -662,3 +662,23 @@ describe('ChartWidgetGrid — narrow (a phone)', () => {
     expect(tabs()).toHaveLength(3);
   });
 });
+
+
+it('reports the exact chart changing symbol to a static-data grid host', async () => {
+  const changes: [unknown,string][]=[];
+  make({layout:'1x2',sync:{symbol:false},onChartSymbolChange:(widget,symbol)=>changes.push([widget,symbol])});
+  const [first,second]=grid.getWidgets();
+  await second.setSymbol('DDD');
+  expect(changes).toEqual([[second,'DDD']]);
+  expect(first.getSymbol()).toBe('AAA');
+});
+
+
+it('notifies a static host when a parked cell finishes restoring', async () => {
+  const restored: number[]=[];
+  make({layout:'1x2',sync:{symbol:false},onChartUnpark:(_widget,index)=>restored.push(index)});
+  grid.setLayout('1x1');
+  grid.setLayout('1x2');
+  await nextFrame();await nextFrame();
+  expect(restored).toEqual([1]);
+});

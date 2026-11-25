@@ -1,7 +1,7 @@
 import type { ChartStyleOverrides, ChartStyleOverridesPatch, DataAdapter, DrawingState, Theme, ThemeName, VisibleRangeChangePayload } from '@tradecanvas/commons';
 import { tickerOf } from '@tradecanvas/commons';
 import { ChartWidget } from './ChartWidget.js';
-import type { ChartWidgetOptions, WidgetLayoutsOptions } from './types.js';
+import type { ChartWidgetOptions, WidgetLayoutsOptions, ChartMenuItemsContext, WidgetMenuItem } from './types.js';
 import { readWidgetFeatures, type WidgetFeatures } from './widgetFeatures.js';
 import { GRID_LAYOUT_SHAPES, GRID_LAYOUTS, gridAreas, gridChartCount, isGridLayout, placeGridCell, type GridLayout, type GridShape } from '../grid/gridShapes.js';
 import { GridLayoutPicker } from './GridLayoutPicker.js';
@@ -73,6 +73,12 @@ export interface ChartWidgetGridOptions {
   onActiveChange?: (index: number, widget: ChartWidget) => void;
   /** A chart was made: at the start, and when the grid grows. Feed it data, add indicators… */
   onChartAdd?: (widget: ChartWidget, index: number) => void;
+  /** Static-data hosts can supply the selected chart's series synchronously, before layout restoration continues. */
+  onChartSymbolChange?: (widget: ChartWidget, symbol: string) => void;
+  /** Host chart-menu actions scoped to the exact originating chart. */
+  onChartMenuItems?: (widget: ChartWidget, context: ChartMenuItemsContext) => readonly WidgetMenuItem[];
+  /** A previously parked cell has finished restoring. */
+  onChartUnpark?: (widget: ChartWidget, index: number) => void;
 }
 
 /** What a grid's named layout holds. */
@@ -504,9 +510,11 @@ export class ChartWidgetGrid {
         : {}),
       // A rail of panels on every chart would narrow them all: off unless the grid's widget options turn it on.
       features: { dock: false, ...shared.features, ...own.features },
+      ...(this.options.onChartMenuItems ? { chartMenuItems: (context: ChartMenuItemsContext) => cell.widget ? this.options.onChartMenuItems!(cell.widget, context) : [] } : {}),
       onSymbolChange: (symbol) => {
         own.onSymbolChange?.(symbol);
         shared.onSymbolChange?.(symbol);
+        if (cell.widget) this.options.onChartSymbolChange?.(cell.widget, symbol);
         if (this.sync.symbol) this.relay(cell, (w) => void w.setSymbol(symbol));
         this.renderTabs();
         this.session?.changed();
@@ -623,7 +631,9 @@ export class ChartWidgetGrid {
       ...(lead && this.sync.interval ? { timeframe: lead.getTimeframe() } : {}),
     };
     this.relayDepth++;
+    let restoredOk = false;
     cell.widget.restoreLayout(restored)
+      .then(() => { restoredOk = true; })
       .catch(() => cell.widget.toast(this.t('layouts.openFailed'), 'error'))
       .finally(() => {
         this.relayDepth--;
@@ -631,6 +641,7 @@ export class ChartWidgetGrid {
           const source = this.cells.find(c => c !== cell && c.widget.getSymbol() === cell.widget.getSymbol());
           if (source) this.copyDrawings(source);
         }
+        if (restoredOk && !this.destroyed && this.cells.includes(cell)) this.options.onChartUnpark?.(cell.widget, this.cells.indexOf(cell));
       });
   }
 

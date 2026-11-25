@@ -1136,6 +1136,9 @@ await grid.connectAll(() => new BinanceAdapter(), ['BTCUSDT', 'ETHUSDT', 'SOLUSD
 grid.getChart(0)?.addIndicator('ema', { period: 50 });
 ```
 
+
+For static historical-data hosts, use `onChartSymbolChange(widget, symbol)` to replace only that cell's bars, and `widget.setHostTimeframes(timeframes, fallback)` to refresh its allowed intervals. Clear outgoing bars before changing the interval list. `onChartMenuItems(widget, context)` scopes custom order actions to their originating cell. `onChartUnpark(widget, index)` lets the host reconcile a restored parked chart with authoritative state.
+
 With the full widget on each chart, `ChartWidgetGrid` adds a bar to pick the
 arrangement and the sync, and saves the whole grid as a named layout.
 
