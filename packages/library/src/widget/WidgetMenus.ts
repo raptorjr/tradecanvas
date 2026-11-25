@@ -330,7 +330,7 @@ export class WidgetMenus {
    * how many would go (locked drawings stay). Nothing to remove, no menu; a
    * second press closes it.
    */
-  openClearMenu(anchor: HTMLElement): void {
+  openClearMenu(anchor: HTMLElement, hover = false): void {
     if (WidgetContextMenu.closeAnchoredTo(anchor)) return;
     const drawings = this.host.chart.getDrawings().filter((d) => !d.locked).length;
     const indicators = this.host.chart.getActiveIndicators().length;
@@ -339,8 +339,8 @@ export class WidgetMenus {
     if (indicators > 0) entries.push({ id: 'indicators', label: this.host.t('clear.indicators'), icon: 'trendingUp', count: indicators });
     if (drawings > 0 && indicators > 0) entries.push('separator', { id: 'all', label: this.host.t('clear.all'), icon: 'trash', danger: true });
     if (entries.length === 0) return;
-    this.clearMenu ??= new WidgetContextMenu(this.host.root, this.host.t('drawing.clearAll'));
-    this.clearMenu.openBeside(entries, anchor, (id) => this.removeAll(id as 'drawings' | 'indicators' | 'all'));
+    this.clearMenu ??= new WidgetContextMenu(anchor.closest<HTMLElement>('.tcw-grid') ?? this.host.root, this.host.t('drawing.clearAll'));
+    this.clearMenu.openBeside(entries, anchor, (id) => this.removeAll(id as 'drawings' | 'indicators' | 'all'), hover);
   }
 
   // --- Hide, lock and the magnet ---
@@ -407,16 +407,16 @@ export class WidgetMenus {
   }
 
   /** The hide button's menu: each of what it can hide, ticked when hidden; the one picked is the button's from then on. */
-  openHideMenu(anchor: HTMLElement): void {
+  openHideMenu(anchor: HTMLElement, hover = false): void {
     if (WidgetContextMenu.closeAnchoredTo(anchor)) return;
     const t = this.host.t;
     const scopes: HideScope[] = this.hasTrading() ? ['drawings', 'indicators', 'trading', 'all'] : ['drawings', 'indicators', 'all'];
     const entries: ContextMenuEntry[] = scopes.map((id) => ({ id, label: t(`hide.${id}`), checked: this.isHidden(id) }));
-    this.hideMenu ??= new WidgetContextMenu(this.host.root, t('drawing.hideAll'));
+    this.hideMenu ??= new WidgetContextMenu(anchor.closest<HTMLElement>('.tcw-grid') ?? this.host.root, t('drawing.hideAll'));
     this.hideMenu.openBeside(entries, anchor, (id) => {
       this.hideScope = id as HideScope;
       this.toggleHidden();
-    });
+    }, hover);
   }
 
   /** Whether `scope` is locked: every drawing, the positions and orders, or both. */
@@ -444,20 +444,20 @@ export class WidgetMenus {
   }
 
   /** The lock button's menu: the drawings, the positions and orders, or all, ticked when locked. */
-  openLockMenu(anchor: HTMLElement): void {
+  openLockMenu(anchor: HTMLElement, hover = false): void {
     if (WidgetContextMenu.closeAnchoredTo(anchor)) return;
     const t = this.host.t;
     const scopes: LockScope[] = this.hasTrading() ? ['drawings', 'trading', 'all'] : ['drawings'];
     const entries: ContextMenuEntry[] = scopes.map((id) => ({ id, label: t(`lock.${id}`), checked: this.isLocked(id) }));
-    this.lockMenu ??= new WidgetContextMenu(this.host.root, t('drawing.lockAll'));
+    this.lockMenu ??= new WidgetContextMenu(anchor.closest<HTMLElement>('.tcw-grid') ?? this.host.root, t('drawing.lockAll'));
     this.lockMenu.openBeside(entries, anchor, (id) => {
       this.lockScope = id as LockScope;
       this.toggleLocked();
-    });
+    }, hover);
   }
 
   /** The magnet button's menu: weak or strong; picking one turns the magnet on at it. */
-  openMagnetMenu(anchor: HTMLElement): void {
+  openMagnetMenu(anchor: HTMLElement, hover = false): void {
     if (WidgetContextMenu.closeAnchoredTo(anchor)) return;
     const t = this.host.t;
     const state = this.host.state;
@@ -466,8 +466,8 @@ export class WidgetMenus {
       { id: 'weak', label: t('magnet.weak'), radio: true, checked: state.magnetEnabled && !strong },
       { id: 'strong', label: t('magnet.strong'), radio: true, checked: state.magnetEnabled && strong },
     ];
-    this.magnetMenu ??= new WidgetContextMenu(this.host.root, t('drawing.magnet'));
-    this.magnetMenu.openBeside(entries, anchor, (id) => this.host.setMagnetStrength(id as 'weak' | 'strong'));
+    this.magnetMenu ??= new WidgetContextMenu(anchor.closest<HTMLElement>('.tcw-grid') ?? this.host.root, t('drawing.magnet'));
+    this.magnetMenu.openBeside(entries, anchor, (id) => this.host.setMagnetStrength(id as 'weak' | 'strong'), hover);
   }
 
   /** The buttons say what they act on now, and the objects list shows it. */

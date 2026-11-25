@@ -277,7 +277,9 @@ export class ChartWidget {
   /** The widget's own lists and calendar for its selects and date fields. */
   private stopFormControls: (() => void) | null = null;
   private readonly overlayHost = (): HTMLElement => {
-    const host = document.fullscreenElement === this.root ? this.root : document.body;
+    const fullscreen = document.fullscreenElement;
+    const host = fullscreen instanceof HTMLElement && fullscreen.contains(this.root)
+      ? fullscreen : this.options.overlayContainer ?? document.body;
     if (this.portal.parentElement !== host) host.appendChild(this.portal);
     return this.portal;
   };
@@ -703,19 +705,19 @@ export class ChartWidget {
         onCancelDrawing: () => this.handleCancelDrawing(),
         onCrosshairCursor: (kind) => this.setCrosshairCursor(kind),
         onToggleMagnet: features.drawingMagnet !== false ? () => this.handleToggleMagnet() : undefined,
-        onMagnetMenu: features.drawingMagnet !== false ? (anchor) => this.menus.openMagnetMenu(anchor) : undefined,
+        onMagnetMenu: features.drawingMagnet !== false ? (anchor, hover) => this.menus.openMagnetMenu(anchor, hover) : undefined,
         onToggleEraser: () => this.chart.setEraserMode(!this.chart.isEraserMode()),
         onToggleZoomArea: () => this.chart.setZoomAreaMode(!this.chart.isZoomAreaMode()),
         onToggleFavorite: (tool) => this.handleToggleFavorite(tool),
-        onClear: (anchor) => this.menus.openClearMenu(anchor),
+        onClear: (anchor, hover) => this.menus.openClearMenu(anchor, hover),
         onToggleStyle: () => this.drawingStyle?.toggle(),
         onToggleStayInDrawing: () => this.handleToggleStayInDrawing(),
         onToggleFavoritesBar: () => this.toggleFavoritesBar(),
         // Each acts on what its menu last chose: the drawings until then.
         onLockAll: () => this.menus.toggleLocked(),
-        onLockMenu: (anchor) => this.menus.openLockMenu(anchor),
+        onLockMenu: (anchor, hover) => this.menus.openLockMenu(anchor, hover),
         onHideAll: () => this.menus.toggleHidden(),
-        onHideMenu: (anchor) => this.menus.openHideMenu(anchor),
+        onHideMenu: (anchor, hover) => this.menus.openHideMenu(anchor, hover),
       },
     this.t,
     );

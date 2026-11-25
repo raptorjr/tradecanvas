@@ -6540,6 +6540,11 @@
   "options": {
     "ChartWidget": [
       {
+        "name": "overlayContainer",
+        "type": "HTMLElement",
+        "doc": "Host-owned overlay layer, e.g. a fullscreen trading workspace. Defaults to document.body."
+      },
+      {
         "name": "symbol",
         "type": "string",
         "kind": "string"

@@ -152,6 +152,8 @@ export class WidgetLayouts {
     const state = json ? parseLayoutJson(json) : null;
     // The theme stays the viewer's; the time of the capture would make every capture differ.
     const chart = state && typeof state === 'object' ? layoutChartState(state as Record<string, unknown>) : null;
+    const view = this.host.chart.captureHostReplayView?.();
+    if (chart && view) chart.hostReplayView = view;
     return {
       v: 1,
       symbol: this.host.state.symbol,
@@ -186,6 +188,10 @@ export class WidgetLayouts {
     this.host.syncIndicatorsFromChart();
     this.host.updateUI();
     this.host.settings?.refresh(this.host.shownSettings(), this.host.state.chartType);
+    if (content.chart?.hostReplayView) {
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      if (!this.host.destroyed) this.host.chart.restoreHostReplayView(content.chart.hostReplayView);
+    }
   }
 
   /** `captureLayout()` as JSON. */

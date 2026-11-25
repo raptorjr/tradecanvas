@@ -104,6 +104,17 @@ export class WidgetContextMenu {
   private hoverTimer: ReturnType<typeof setTimeout> | null = null;
   /** The entry `hoverTimer` counts the rest on: moving on it counts on, not again. */
   private hoverItem: HTMLElement | null = null;
+  private hoverClose: ReturnType<typeof setTimeout> | null = null;
+  private openedByHover = false;
+  private readonly onHoverMove = (event: Event) => {
+    const target = event.target as Node;
+    if (this.holds(target) || this.anchor?.parentElement?.contains(target)) {
+      if (this.hoverClose !== null) clearTimeout(this.hoverClose);
+      this.hoverClose = null;
+    } else if (this.hoverClose === null) {
+      this.hoverClose = setTimeout(() => { this.hoverClose = null; this.close(); }, 150);
+    }
+  };
   private readonly onDocPointer = (e: Event) => {
     const target = e.target as Node;
     if (this.holds(target) || this.anchor?.contains(target)) return;
@@ -177,15 +188,17 @@ export class WidgetContextMenu {
    * past its end edge, or before its start edge without room there; ending
    * at its bottom when there is no room below.
    */
-  openBeside(entries: readonly ContextMenuEntry[], anchor: HTMLElement, onPick: (id: string) => void): void {
+  openBeside(entries: readonly ContextMenuEntry[], anchor: HTMLElement, onPick: (id: string) => void, hover = false): void {
     const at = anchor.getBoundingClientRect();
     const box = this.host.getBoundingClientRect();
     // Starting past its right edge, or ending before its left one: right to left, the left first.
     const right = at.right - box.left + MENU_GAP;
     const left = at.left - box.left - MENU_GAP;
-    this.show(entries, { x: right, y: at.top - box.top, xBack: left, yBack: at.bottom - box.top, before: this.rtl() }, onPick, anchor, undefined, true);
-    // Safari doesn't focus a pressed button: the keyboard goes back to it all the same.
-    this.returnFocus = anchor;
+    for (const other of [...openMenus]) if (other !== this && other.openedByHover) other.close();
+    this.show(entries, { x: right, y: at.top - box.top, xBack: left, yBack: at.bottom - box.top, before: this.rtl() }, onPick, anchor, undefined, !hover);
+    this.openedByHover = hover;
+    this.returnFocus = hover ? null : anchor;
+    if (hover) document.addEventListener('pointermove', this.onHoverMove);
   }
 
   /**
@@ -204,6 +217,10 @@ export class WidgetContextMenu {
   }
 
   close(): void {
+    document.removeEventListener('pointermove', this.onHoverMove);
+    if (this.hoverClose !== null) clearTimeout(this.hoverClose);
+    this.hoverClose = null;
+    this.openedByHover = false;
     this.clearHover();
     this.child?.close();
     if (this.el.hidden) return;

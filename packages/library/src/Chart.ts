@@ -3884,6 +3884,26 @@ export class Chart {
     this.hostReplayViewport = enabled;
   }
 
+  /** The host replay's independent horizontal and manual price viewport. */
+  captureHostReplayView(): { barWidth: number; barSpacing: number; offset: number; plotWidth: number; priceRange: { min: number; max: number }; autoScale: boolean } | null {
+    if (!this.hostReplayViewport || !this.getDisplayData().length) return null;
+    const { barWidth, barSpacing, offset, chartRect, priceRange } = this.viewport.getState();
+    return { barWidth, barSpacing, offset, plotWidth: chartRect.width, priceRange: { ...priceRange }, autoScale: this.isAutoScale() };
+  }
+
+  /** Apply a saved replay view after the host has restored data and settings. */
+  restoreHostReplayView(value: unknown): void {
+    if (!this.hostReplayViewport || !this.getDisplayData().length || !value || typeof value !== 'object') return;
+    const view = value as NonNullable<ReturnType<Chart['captureHostReplayView']>>;
+    if (![view.barWidth, view.barSpacing, view.offset, view.plotWidth].every(Number.isFinite) || view.barWidth <= 0 || view.barSpacing < 0 || view.plotWidth <= 0) return;
+    this.viewport.restoreReplayView(view);
+    if (typeof view.autoScale === 'boolean') this.priceFit.setAuto(view.autoScale, true);
+    if (view.autoScale === false && view.priceRange && Number.isFinite(view.priceRange.min) && Number.isFinite(view.priceRange.max) && view.priceRange.min < view.priceRange.max) {
+      this.viewport.setPriceRange(view.priceRange.min, view.priceRange.max);
+    }
+    this.updateViewportAndRender();
+  }
+
   private captureHostReplayAnchor(): { time: number; x: number } | null {
     const data = this.getDisplayData();
     const { offset, barWidth, barSpacing, chartRect } = this.viewport.getState();
