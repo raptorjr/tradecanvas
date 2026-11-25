@@ -112,26 +112,22 @@ describe('ChartWidgetGrid', () => {
     expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
   });
 
-  it('shares one drawing sidebar and one status bar with the active chart', () => {
+  it('shows only the active chart drawing sidebar and status bar in the shared rails', () => {
     make({ sharedDrawingTools: true });
     const drawingRail = host.querySelector('.tcw-grid-shared-drawing-tools');
     const statusRail = host.querySelector('.tcw-grid-shared-statusbar');
-    const sidebar = drawingRail?.querySelector('.tcw-sidebar');
-    const statusbar = statusRail?.querySelector('.tcw-statusbar');
-    expect(sidebar).not.toBeNull();
-    expect(statusbar).not.toBeNull();
-    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar')).toHaveLength(1);
-    expect(host.querySelectorAll('.tcw-grid-cell .tcw-statusbar')).toHaveLength(1);
+    expect(drawingRail?.querySelectorAll('.tcw-sidebar')).toHaveLength(1);
+    expect(statusRail?.querySelectorAll('.tcw-statusbar')).toHaveLength(1);
 
     grid.setActive(1);
-    expect(drawingRail?.querySelector('.tcw-sidebar')).toBe(sidebar);
-    expect(statusRail?.querySelector('.tcw-statusbar')).toBe(statusbar);
-    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar')).toHaveLength(1);
-    expect(host.querySelectorAll('.tcw-grid-cell .tcw-statusbar')).toHaveLength(1);
+    expect(drawingRail?.querySelectorAll('.tcw-sidebar')).toHaveLength(1);
+    expect(statusRail?.querySelectorAll('.tcw-statusbar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar:not([hidden])')).toHaveLength(0);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-statusbar:not([hidden])')).toHaveLength(0);
 
     grid.setActive(0);
-    expect(drawingRail?.querySelector('.tcw-sidebar')).toBe(sidebar);
-    expect(statusRail?.querySelector('.tcw-statusbar')).toBe(statusbar);
+    expect(drawingRail?.querySelectorAll('.tcw-sidebar')).toHaveLength(1);
+    expect(statusRail?.querySelectorAll('.tcw-statusbar')).toHaveLength(1);
   });
 
   it('opens two charts side by side, each with its own symbol, the first one active', () => {
@@ -269,11 +265,13 @@ describe('ChartWidgetGrid', () => {
     expect(grid.getActiveWidget()).toBe(grid.getWidget(1));
   });
 
-  it('shows drawing tools only for the active chart in shared drawing-tools mode', () => {
+  it('shows the drawing sidebar only once in shared drawing-tools mode', () => {
     make({ sharedDrawingTools: true });
-    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([true, false]);
+    expect(host.querySelectorAll('.tcw-grid-shared-drawing-tools > .tcw-sidebar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar:not([hidden])')).toHaveLength(0);
     grid.setActive(1);
-    expect(grid.getWidgets().map((widget) => widget.isFeatureOn('sidebar'))).toEqual([false, true]);
+    expect(host.querySelectorAll('.tcw-grid-shared-drawing-tools > .tcw-sidebar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar:not([hidden])')).toHaveLength(0);
   });
 
   it('passes a symbol on only when symbols are synced', async () => {
