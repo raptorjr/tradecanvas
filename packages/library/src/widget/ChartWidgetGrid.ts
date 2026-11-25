@@ -67,8 +67,10 @@ export interface ChartWidgetGridOptions {
   sharedToolbar?: boolean;
   /** Put the arrangement picker in place of the replay button in the shared toolbar. Requires `sharedToolbar`; hides each chart's replay button. Default `false`. */
   layoutPickerInToolbar?: boolean;
-  /** Show the drawing sidebar only on the active chart. Default `false`. */
+  /** Show one drawing sidebar for the active chart. Default `false`. */
   sharedDrawingTools?: boolean;
+  /** Show one bottom status bar for the active chart. Default `false`. */
+  sharedStatusBar?: boolean;
   /** The chart in use changed (pressed, or the grid shrank). */
   onActiveChange?: (index: number, widget: ChartWidget) => void;
   /** A chart was made: at the start, and when the grid grows. Feed it data, add indicators… */
@@ -121,6 +123,8 @@ export class ChartWidgetGrid {
   private root: HTMLDivElement;
   private cellsEl: HTMLDivElement;
   private sharedToolbarEl: HTMLDivElement | null = null;
+  private sharedDrawingToolsEl: HTMLDivElement | null = null;
+  private sharedStatusBarEl: HTMLDivElement | null = null;
   private cells: Cell[] = [];
   private layout: GridLayout;
   private sync: WidgetGridSync;
@@ -184,9 +188,22 @@ export class ChartWidgetGrid {
       }
       this.root.appendChild(this.sharedToolbarEl);
     }
+    const workspace = document.createElement('div');
+    workspace.className = 'tcw-grid-workspace';
+    if (options.sharedDrawingTools) {
+      this.sharedDrawingToolsEl = document.createElement('div');
+      this.sharedDrawingToolsEl.className = 'tcw-grid-shared-drawing-tools';
+      workspace.appendChild(this.sharedDrawingToolsEl);
+    }
     this.cellsEl = document.createElement('div');
     this.cellsEl.className = 'tcw-grid-cells';
-    this.root.appendChild(this.cellsEl);
+    workspace.appendChild(this.cellsEl);
+    this.root.appendChild(workspace);
+    if (options.sharedStatusBar) {
+      this.sharedStatusBarEl = document.createElement('div');
+      this.sharedStatusBarEl.className = 'tcw-grid-shared-statusbar';
+      this.root.appendChild(this.sharedStatusBarEl);
+    }
     container.appendChild(this.root);
     // Narrow, one chart at a time, picked by its tab.
     this.stopNarrow = watchNarrow(this.root);
@@ -685,8 +702,15 @@ export class ChartWidgetGrid {
         }
       });
     }
-    if (this.options.sharedDrawingTools) {
-      this.cells.forEach((cell, index) => cell.widget.setFeatures({ sidebar: index === this.active }));
+    if (this.sharedDrawingToolsEl) {
+      this.cells.forEach((cell, index) => {
+        cell.widget.moveDrawingToolsTo(index === this.active ? this.sharedDrawingToolsEl : null, index === this.active);
+      });
+    }
+    if (this.sharedStatusBarEl) {
+      this.cells.forEach((cell, index) => {
+        cell.widget.moveStatusBarTo(index === this.active ? this.sharedStatusBarEl : null, index === this.active);
+      });
     }
   }
 
