@@ -67,7 +67,7 @@ export interface ChartWidgetGridOptions {
   sharedToolbar?: boolean;
   /** Put the arrangement picker in place of the replay button in the shared toolbar. Requires `sharedToolbar`; hides each chart's replay button. Default `false`. */
   layoutPickerInToolbar?: boolean;
-  /** Show one drawing sidebar for the active chart. Default `false`. */
+  /** Show the drawing sidebar only on the active chart. Default `false`. */
   sharedDrawingTools?: boolean;
   /** The chart in use changed (pressed, or the grid shrank). */
   onActiveChange?: (index: number, widget: ChartWidget) => void;
