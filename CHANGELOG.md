@@ -1,3 +1,7 @@
+## Unreleased
+
+- **A grid's layout picker stays in the shared toolbar** (`@tradecanvas/chart`): it has a permanent place beside the active chart's toolbar, rather than taking the place of a per-chart replay button that may be absent.
+
 # Changelog
 
 ## Unreleased
