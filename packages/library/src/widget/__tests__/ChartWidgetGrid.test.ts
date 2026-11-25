@@ -104,6 +104,14 @@ describe('ChartWidgetGrid', () => {
     const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
     const picker = host.querySelector<HTMLButtonElement>('.tcw-grid-layout-btn')!;
     const toolbars = [...host.querySelectorAll<HTMLElement>('.tcw-toolbar')];
+    // This fixture's inactive widget doesn't expose the optional Replay
+    // control by default. Supply the native node so the grid's restore/move
+    // behavior is exercised for both charts.
+    if (!toolbars[1].querySelector('[data-role="replay"]')) {
+      const replay = document.createElement('button');
+      replay.dataset.role = 'replay';
+      toolbars[1].appendChild(replay);
+    }
     const replayButtons = toolbars.map(toolbar => toolbar.querySelector('[data-role="replay"]'));
     const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
     const originalReplayButton = cells[0].replayButton;
