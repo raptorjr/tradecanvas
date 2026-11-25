@@ -1,6 +1,6 @@
 ## Unreleased
 
-- **Host trading label formatters** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): customize protective amounts and pending-entry details, including drag prices.
+- **Host trading label formatters** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): customize protective amounts and pending-entry details, including drag prices. Overlong trading labels shorten in narrow plots to preserve buttons.
 
 - **Futures P&L on position and protective order labels** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): position `pointValue` scales displayed amounts per contract and `currencySymbol` optionally identifies the currency, including when dragging a stop or target.
 

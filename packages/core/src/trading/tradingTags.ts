@@ -91,6 +91,50 @@ export function tagWidth(ctx: CanvasRenderingContext2D, tag: TradingTag, theme: 
   return tag.cells.reduce((sum, cell) => sum + cellWidth(ctx, cell, theme), 0);
 }
 
+/** Shorten a text cell to fit its allotted width, without changing a button or stamp. */
+function fitTextCell(ctx: CanvasRenderingContext2D, cell: Extract<TagCell, { kind: 'text' }>, theme: Theme, budget: number): TagCell | null {
+  if (cellWidth(ctx, cell, theme) <= budget) return cell;
+  const ellipsis = '…';
+  if (cellWidth(ctx, { ...cell, text: ellipsis }, theme) > budget) return null;
+  const chars = Array.from(cell.text);
+  let lo = 0;
+  let hi = chars.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    const candidate = { ...cell, text: chars.slice(0, mid).join('').trimEnd() + ellipsis };
+    if (cellWidth(ctx, candidate, theme) <= budget) lo = mid;
+    else hi = mid - 1;
+  }
+  return { ...cell, text: chars.slice(0, lo).join('').trimEnd() + ellipsis };
+}
+
+/** Keep a tag's controls usable if its own text exceeds the plot width. */
+function fitTag(ctx: CanvasRenderingContext2D, tag: TradingTag, theme: Theme, maxWidth: number): TradingTag {
+  const widths = tag.cells.map(cell => cellWidth(ctx, cell, theme));
+  const total = widths.reduce((sum, width) => sum + width, 0);
+  if (total <= maxWidth) return tag;
+  const fixed = widths.reduce((sum, width, index) => sum + (tag.cells[index].kind === 'text' ? 0 : width), 0);
+  // There is no way to fit the controls themselves in this exceptionally narrow plot.
+  if (fixed > maxWidth) return tag;
+  let remaining = maxWidth - fixed;
+  let natural = total - fixed;
+  const cells: TagCell[] = [];
+  tag.cells.forEach((cell, index) => {
+    if (cell.kind !== 'text') {
+      cells.push(cell);
+      return;
+    }
+    const budget = natural > 0 ? Math.floor(remaining * widths[index] / natural) : 0;
+    const fitted = fitTextCell(ctx, cell, theme, budget);
+    if (fitted) {
+      cells.push(fitted);
+      remaining -= cellWidth(ctx, fitted, theme);
+    }
+    natural -= widths[index];
+  });
+  return { ...tag, cells };
+}
+
 /** The top of a tag centred on the line at `y`, on the pixel grid. */
 function tagTop(y: number): number {
   return Math.round(y) - Math.floor(TAG_HEIGHT / 2);
@@ -143,17 +187,19 @@ export function drawTags(
 ): void {
   if (tags.length === 0) return;
   const { chartRect } = viewport;
-  const widths = tags.map((tag) => tag.cells.map((cell) => cellWidth(ctx, cell, theme)));
+  // A long host-provided label must not make its order controls unclickable.
+  const fittedTags = tags.map(tag => fitTag(ctx, tag, theme, Math.max(0, chartRect.width - rightInset - TAG_GAP)));
+  const widths = fittedTags.map((tag) => tag.cells.map((cell) => cellWidth(ctx, cell, theme)));
   const sums = widths.map((w) => w.reduce((a, b) => a + b, 0));
   const places = layoutTags(
-    tags.map((tag, i) => ({ y: tag.y, width: sums[i] })),
+    fittedTags.map((tag, i) => ({ y: tag.y, width: sums[i] })),
     { left: chartRect.x, right: chartRect.x + chartRect.width - rightInset },
   );
   const order = tags.map((_, i) => i).sort((a, b) => Number(places[a].fits) - Number(places[b].fits));
   for (const i of order) {
     const { x, fits } = places[i];
-    const top = tagTop(tags[i].y);
-    drawTag(ctx, tags[i], x, top, widths[i], sums[i], theme, fits ? buttons : []);
+    const top = tagTop(fittedTags[i].y);
+    drawTag(ctx, fittedTags[i], x, top, widths[i], sums[i], theme, fits ? buttons : []);
     rects.push({ x, y: top, width: sums[i], height: TAG_HEIGHT });
     const grab = tags[i].grab;
     if (!fits || !grab) continue;
