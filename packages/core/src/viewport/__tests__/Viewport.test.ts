@@ -396,3 +396,20 @@ describe('Viewport — the decimals prices show', () => {
     expect(vp.getState().pricePrecision).toBe(0);
   });
 });
+
+describe('saved host replay viewport', () => {
+  it('restores zoom and center at different plot widths', () => {
+    const viewport = new Viewport(1000, 500);
+    viewport.updateData(bars(200), false);
+    viewport.zoomToBarRange(20, 80);
+    const state = viewport.getState();
+    const saved = { barWidth:state.barWidth, barSpacing:state.barSpacing, offset:state.offset, plotWidth:state.chartRect.width };
+    viewport.scrollBy(100);
+    viewport.restoreReplayView(saved);
+    expect(viewport.getState().offset).toBeCloseTo(saved.offset);
+    viewport.resize(800,500);
+    viewport.restoreReplayView(saved);
+    const restored = viewport.getState();
+    expect((restored.offset+restored.chartRect.width/2)/(restored.barWidth+restored.barSpacing)).toBeCloseTo((saved.offset+saved.plotWidth/2)/(saved.barWidth+saved.barSpacing));
+  });
+});

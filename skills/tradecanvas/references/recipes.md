@@ -1501,3 +1501,7 @@ beside the chart, all shut to start with, opened from a rail at its edge or
 with `widget.openPanel(...)`; `features: { dock: false }` drops the rail.
 `addDockPage` puts a page of yours there too, and the `onPanelChange` option is
 told which panel is open (or `null`) whenever that changes.
+
+### Host replay workspace overlays and viewport
+
+Use `overlayContainer` on widget options to keep dialogs inside a host-owned fullscreen workspace. With `chart.setHostReplayViewport(true)`, widget layout capture and restore include each chart's independent horizontal viewport and manual price range; restore after the host loads the revealed bars. Use grid drawing sync for matching symbols.

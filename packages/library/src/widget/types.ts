@@ -49,6 +49,8 @@ export interface WatchlistOptions {
 }
 
 export interface ChartWidgetOptions {
+  /** Host-owned overlay layer, e.g. a fullscreen trading workspace. Defaults to document.body. */
+  overlayContainer?: HTMLElement;
   symbol?: string;
   timeframe?: TimeFrame;
   theme?: ThemeName | Theme;
@@ -664,22 +666,22 @@ export interface SidebarCallbacks {
   /** Omitted when the magnet is switched off (`features.drawingMagnet: false`). On and off, at the strength last chosen. */
   onToggleMagnet?: () => void;
   /** The magnet's menu (weak, strong), under its button. */
-  onMagnetMenu?: (anchor: HTMLElement) => void;
+  onMagnetMenu?: (anchor: HTMLElement, hover?: boolean) => void;
   onToggleEraser?: () => void;
   onToggleZoomArea?: () => void;
   onToggleFavorite?: (tool: DrawingToolType) => void;
   /** A cursor kind picked from the cursor button's menu: the menu shows when given. */
   onCrosshairCursor?: (kind: import('@tradecanvas/commons').CrosshairCursor) => void;
   /** The trash button, pressed: it opens a menu of what to remove beside `anchor`. */
-  onClear: (anchor: HTMLElement) => void;
+  onClear: (anchor: HTMLElement, hover?: boolean) => void;
   /** Lock (true) or unlock every drawing: the button shows when given. */
   onLockAll?: (locked: boolean) => void;
   /** The lock button's menu (drawings, positions and orders, all), under it. */
-  onLockMenu?: (anchor: HTMLElement) => void;
+  onLockMenu?: (anchor: HTMLElement, hover?: boolean) => void;
   /** Hide (true) or show every drawing: the button shows when given. */
   onHideAll?: (hidden: boolean) => void;
   /** The hide button's menu (drawings, indicators, positions and orders, all), under it. */
-  onHideMenu?: (anchor: HTMLElement) => void;
+  onHideMenu?: (anchor: HTMLElement, hover?: boolean) => void;
   onToggleStyle?: () => void;
   onToggleStayInDrawing?: () => void;
   /** Show or hide the favorites bar floating over the chart. */

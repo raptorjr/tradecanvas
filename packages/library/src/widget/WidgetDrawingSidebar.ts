@@ -941,7 +941,7 @@ export class WidgetDrawingSidebar {
    * (as a tool group's corner shows it has more), and the same from a right
    * click, or the arrow keys on the button. Without `open`, the button alone.
    */
-  private withMenu(btn: HTMLButtonElement, open: ((anchor: HTMLElement) => void) | undefined): HTMLElement {
+  private withMenu(btn: HTMLButtonElement, open: ((anchor: HTMLElement, hover?: boolean) => void) | undefined): HTMLElement {
     if (!open) return btn;
     const wrap = document.createElement('div');
     wrap.className = 'tcw-sidebar-split';
@@ -965,6 +965,12 @@ export class WidgetDrawingSidebar {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowDown') return;
       e.preventDefault();
       open(btn);
+    });
+    wrap.addEventListener('mouseenter', () => {
+      if (!this.isNarrow() && btn.getAttribute('aria-expanded') !== 'true') {
+        this.hideFlyout();
+        open(btn, true);
+      }
     });
     wrap.append(btn, more);
     return wrap;

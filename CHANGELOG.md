@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Host replay layouts now restore independent chart zoom, scroll and manual price scale; embedded widget dialogs follow the host overlay/fullscreen container; shared drawing sidebar menus open beside their actual anchor and on hover. Synced drawings populate newly opened charts.
+
 - **Host trading label formatters** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): customize protective amounts and pending-entry details, including drag prices. Overlong trading labels shorten in narrow plots to preserve buttons.
 
 - **Futures P&L on position and protective order labels** (`@tradecanvas/commons`, `@tradecanvas/core`, `@tradecanvas/chart`): position `pointValue` scales displayed amounts per contract and `currencySymbol` optionally identifies the currency, including when dragging a stop or target.

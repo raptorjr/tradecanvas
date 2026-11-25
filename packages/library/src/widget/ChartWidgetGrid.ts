@@ -306,6 +306,10 @@ export class ChartWidgetGrid {
       const cell = this.createCell(i);
       this.cells.push(cell);
       this.unpark(i, cell);
+      if (this.sync.drawings && !this.relaying) {
+        const source = this.cells.find(c => c !== cell && c.widget.getSymbol() === cell.widget.getSymbol());
+        if (source) this.quietly(() => cell.widget.getChart().setDrawings(copyOf(source.widget.getChart().getDrawings())));
+      }
     }
     if (this.active >= count) {
       this.active = 0;
@@ -621,7 +625,13 @@ export class ChartWidgetGrid {
     this.relayDepth++;
     cell.widget.restoreLayout(restored)
       .catch(() => cell.widget.toast(this.t('layouts.openFailed'), 'error'))
-      .finally(() => { this.relayDepth--; });
+      .finally(() => {
+        this.relayDepth--;
+        if (!this.destroyed && this.sync.drawings && this.cells.includes(cell)) {
+          const source = this.cells.find(c => c !== cell && c.widget.getSymbol() === cell.widget.getSymbol());
+          if (source) this.copyDrawings(source);
+        }
+      });
   }
 
   /** Drawings move in bursts (a drag): copy them once a frame. */

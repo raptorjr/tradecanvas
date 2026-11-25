@@ -406,6 +406,19 @@ export class Viewport {
     this.invalidate();
   }
 
+  /** Restore slot size and center anchor from a saved host replay viewport. */
+  restoreReplayView(view: { barWidth: number; barSpacing: number; offset: number; plotWidth: number }): void {
+    const oldUnit = view.barWidth + view.barSpacing;
+    if (![oldUnit, view.offset, view.plotWidth].every(Number.isFinite) || oldUnit <= 0 || view.plotWidth <= 0 || this.state.chartRect.width <= 0) return;
+    const center = (view.offset + view.plotWidth / 2) / oldUnit;
+    const unit = clamp(oldUnit, this.minUnit(), this.maxUnit());
+    this.applyUnit(unit);
+    this.state.offset = center * unit - this.state.chartRect.width / 2;
+    this.clampOffset();
+    this.invalidate();
+    this.updateVisibleRange();
+  }
+
   scrollBy(deltaPixels: number): void {
     this.state.offset += deltaPixels;
     this.invalidate();
