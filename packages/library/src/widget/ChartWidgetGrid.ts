@@ -179,6 +179,9 @@ export class ChartWidgetGrid {
     if (options.sharedToolbar) {
       this.sharedToolbarEl = document.createElement('div');
       this.sharedToolbarEl.className = 'tcw-grid-active-toolbar';
+      if (this.options.layoutPickerInToolbar && this.layoutPicker) {
+        this.sharedToolbarEl.appendChild(this.layoutPicker.button);
+      }
       this.root.appendChild(this.sharedToolbarEl);
     }
     this.cellsEl = document.createElement('div');
@@ -666,17 +669,16 @@ export class ChartWidgetGrid {
   /** Keep only the active chart's native TradeCanvas toolbar in the shared row. */
   private syncSharedToolbar(): void {
     if (this.sharedToolbarEl) {
+      if (this.options.layoutPickerInToolbar && this.layoutPicker?.button.parentElement !== this.sharedToolbarEl) {
+        this.sharedToolbarEl.prepend(this.layoutPicker!.button);
+      }
       this.cells.forEach((cell, index) => {
         const toolbar = cell.toolbar;
         if (!toolbar) return;
         if (index === this.active) {
           toolbar.hidden = false;
           if (toolbar.parentElement !== this.sharedToolbarEl) this.sharedToolbarEl!.appendChild(toolbar);
-          if (this.options.layoutPickerInToolbar && this.layoutPicker) {
-            const replayButton = toolbar.querySelector('[data-role="replay"]');
-            if (replayButton && replayButton !== this.layoutPicker.button) replayButton.replaceWith(this.layoutPicker.button);
-            this.layoutPicker.button.classList.add('tcw-toolbar-overflow');
-          }
+
         } else {
           if (toolbar.parentElement === this.sharedToolbarEl && cell.widgetRoot) cell.widgetRoot.prepend(toolbar);
           toolbar.hidden = true;
