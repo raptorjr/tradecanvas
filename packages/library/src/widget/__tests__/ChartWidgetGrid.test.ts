@@ -181,7 +181,7 @@ describe('ChartWidgetGrid', () => {
     grid.setActive(2);
     assertPicker();
     layoutButton().click();
-    host.querySelector<HTMLButtonElement>('.tcw-grid-picker [role="menuitemradio"][aria-label="2 charts, side by side"]')!.click();
+    host.querySelector<HTMLButtonElement>('.tcw-grid-picker [role="menuitemradio"][data-layout="1x2"]')!.click();
     expect(grid.getLayout()).toBe('1x2');
     assertPicker();
   });
