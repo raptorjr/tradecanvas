@@ -29,6 +29,10 @@ export interface TradingPosition {
   side: OrderSide;
   entryPrice: number;
   quantity: number;
+  /** Money per price point per unit of quantity, for chart P&L labels. Defaults to 1. */
+  pointValue?: number;
+  /** Optional currency symbol for the default position, stop and target amount labels. */
+  currencySymbol?: string;
   /** Quantity already closed (for partial-close visualization). 0 ≤ closedQuantity ≤ quantity. */
   closedQuantity?: number;
   stopLoss?: number;

@@ -67,3 +67,19 @@ describe('TradingManager and the plot', () => {
     expect(manager.isOverDraggableLine({ x: 500, y: 20 }, unitViewport)).toBe(true);
   });
 });
+
+describe('Futures position labels', () => {
+  it('shows the same dollar multiplier for entry, SL and TP, including while dragging', () => {
+    const renderer = new PositionRenderer();
+    const cfg = { enabled: true, pricePrecision: 2 };
+    const nq: TradingPosition = { id: 'nq', side: 'buy', entryPrice: 50, quantity: 1, pointValue: 20, currencySymbol: '$', stopLoss: 30, takeProfit: 74 };
+    const labels = (pos: TradingPosition, current: number, drag: Parameters<PositionRenderer['tags']>[4] = null) =>
+      renderer.tags([pos], current, unitViewport, cfg, drag).flatMap(tag => tag.cells.map(cell => cell.kind === 'text' ? cell.text : ''));
+    expect(labels(nq, 55)).toEqual(expect.arrayContaining(['+$100.00', '-$400.00', '+$480.00']));
+    expect(labels(nq, 55, { orderId: 'nq', sourceType: 'takeProfit', startPrice: 74, currentPrice: 75 })).toContain('+$500.00');
+    expect(labels({ ...nq, side: 'sell', quantity: 3, closedQuantity: 1, stopLoss: 60, takeProfit: 40, pointValue: 2 }, 45))
+      .toEqual(expect.arrayContaining(['+$20.00', '-$40.00', '+$40.00']));
+    expect(labels({ ...nq, stopLoss: 50 }, 55)).toContain('$0.00');
+    expect(labels({ ...nq, pointValue: undefined, currencySymbol: undefined }, 55)).toContain('+24.00');
+  });
+});

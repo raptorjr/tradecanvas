@@ -170,7 +170,7 @@ export class PositionRenderer {
         cells.push({ kind: 'text', text: resolvePositionLabel(config.positionLabel, labelCtx) });
       } else {
         const color = pickPnLColor(labelCtx.pnl, config.pnlThresholds, labelCtx.pnl >= 0 ? colors.profit : colors.loss);
-        cells.push({ kind: 'text', text: side }, { kind: 'text', text: formatAmount(labelCtx.pnl, amountDecimals(labelCtx.pnl, currentPrice, config.pricePrecision), viewport.numberLocale), color });
+        cells.push({ kind: 'text', text: side }, { kind: 'text', text: formatAmount(labelCtx.pnl, pos.currencySymbol ? 2 : amountDecimals(labelCtx.pnl, currentPrice, config.pricePrecision), viewport.numberLocale, pos.currencySymbol), color });
       }
     }
     const show = config.lineButtons ?? {};
@@ -198,13 +198,13 @@ export class PositionRenderer {
     const y = price === undefined ? NaN : priceToY(price, viewport);
     if (price === undefined || !inPlot(y, viewport)) return null;
     const colors = colorsOf(config);
-    const amount = amountAt(pos.side, pos.entryPrice, openQuantity(pos), price);
+    const amount = amountAt(pos.side, pos.entryPrice, openQuantity(pos), price, pos.pointValue);
     // A distance, not the 0 or null a broker's own record may hold for "none".
     const trailing = typeof pos.trailingStop === 'number' && pos.trailingStop > 0;
     const cells: TagCell[] = [
       // A stop that follows the price says so: TSL.
       { kind: 'stamp', text: which === 'takeProfit' ? 'TP' : trailing ? 'TSL' : 'SL' },
-      { kind: 'text', text: formatAmount(amount, amountDecimals(amount, pos.entryPrice, config.pricePrecision), viewport.numberLocale), color: amount >= 0 ? colors.profit : colors.loss },
+      { kind: 'text', text: formatAmount(amount, pos.currencySymbol ? 2 : amountDecimals(amount, pos.entryPrice, config.pricePrecision), viewport.numberLocale, pos.currencySymbol), color: amount >= 0 ? colors.profit : colors.loss },
     ];
     const dragged = dragState?.orderId === pos.id && dragState.sourceType === which;
     if (which === 'stopLoss' && config.lineButtons?.trailStop !== false && fitsPlot(y, viewport) && !dragged) {

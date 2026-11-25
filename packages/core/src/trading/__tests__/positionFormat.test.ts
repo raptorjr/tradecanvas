@@ -122,3 +122,9 @@ describe('pickPnLColor', () => {
     expect(pickPnLColor(75, unsorted, 'fb')).toBe('lightgreen');
   });
 });
+
+it('uses a futures point value and remaining contracts in P&L context', () => {
+  expect(buildPositionLabelContext({ ...longPos, quantity: 3, closedQuantity: 1, pointValue: 20 }, 124, 2).pnl).toBe(960);
+  expect(buildPositionLabelContext({ ...shortPos, quantity: 1, pointValue: 20 }, 120, 2).pnl).toBe(-400);
+  expect(buildPositionLabelContext({ ...shortPos, quantity: 1, pointValue: 20 }, 100, 2).pnl).toBe(0);
+});

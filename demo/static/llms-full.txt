@@ -251,6 +251,9 @@ chart.on('positionModify', (e) => console.log('stop or target dragged', e.payloa
 chart.modifyPositionIntent({ positionId: 'p1', trailingStop: 400 }); // the stop trails the price by 400 (tag: TSL); null ends it. The paper account moves it; an order takes trailingStop too
 ```
 
+For futures position labels, pass `pointValue` (money per price point per contract) and optional `currencySymbol` on the position. These scale chart P&L, including SL/TP, not execution or account balances.
+
+
 76 drawing tools; each keeps its own settings (`setDrawingOptions`, `updateDrawing`),
 and drawings can be named (`updateDrawing(id, { name })`, what the object tree lists),
 grouped (`groupDrawings`), reordered (`moveDrawing` with a step or a place, 0 the bottom), erased
