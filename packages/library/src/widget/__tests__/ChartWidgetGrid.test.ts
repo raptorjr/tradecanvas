@@ -119,6 +119,9 @@ describe('ChartWidgetGrid', () => {
     const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
     cells[0].toolbar = null;
     cells[0].replayButton = null;
+    // Force a real active-chart transition; setActive is intentionally a
+    // no-op when asked to activate the chart that is already active.
+    grid.setActive(1);
     grid.setActive(0);
     expect(picker.parentElement).toBe(toolbars[0]);
     expect(replayButtons[0]?.parentElement).not.toBe(toolbars[0]);
