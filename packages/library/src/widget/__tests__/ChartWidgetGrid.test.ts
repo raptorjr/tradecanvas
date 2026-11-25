@@ -112,6 +112,28 @@ describe('ChartWidgetGrid', () => {
     expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
   });
 
+  it('shares one drawing sidebar and one status bar with the active chart', () => {
+    make({ sharedDrawingTools: true, sharedStatusBar: true });
+    const drawingRail = host.querySelector('.tcw-grid-shared-drawing-tools');
+    const statusRail = host.querySelector('.tcw-grid-shared-statusbar');
+    const sidebar = drawingRail?.querySelector('.tcw-sidebar');
+    const statusbar = statusRail?.querySelector('.tcw-statusbar');
+    expect(sidebar).not.toBeNull();
+    expect(statusbar).not.toBeNull();
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-statusbar')).toHaveLength(1);
+
+    grid.setActive(1);
+    expect(drawingRail?.querySelector('.tcw-sidebar')).toBe(sidebar);
+    expect(statusRail?.querySelector('.tcw-statusbar')).toBe(statusbar);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-sidebar')).toHaveLength(1);
+    expect(host.querySelectorAll('.tcw-grid-cell .tcw-statusbar')).toHaveLength(1);
+
+    grid.setActive(0);
+    expect(drawingRail?.querySelector('.tcw-sidebar')).toBe(sidebar);
+    expect(statusRail?.querySelector('.tcw-statusbar')).toBe(statusbar);
+  });
+
   it('opens two charts side by side, each with its own symbol, the first one active', () => {
     make();
     expect(symbols()).toEqual(['AAA', 'BBB']);
