@@ -73,6 +73,8 @@ export interface ChartWidgetGridOptions {
   onActiveChange?: (index: number, widget: ChartWidget) => void;
   /** A chart was made: at the start, and when the grid grows. Feed it data, add indicators… */
   onChartAdd?: (widget: ChartWidget, index: number) => void;
+  /** Static-data hosts can supply the selected chart's series synchronously, before layout restoration continues. */
+  onChartSymbolChange?: (widget: ChartWidget, symbol: string) => void;
 }
 
 /** What a grid's named layout holds. */
@@ -507,6 +509,7 @@ export class ChartWidgetGrid {
       onSymbolChange: (symbol) => {
         own.onSymbolChange?.(symbol);
         shared.onSymbolChange?.(symbol);
+        if (cell.widget) this.options.onChartSymbolChange?.(cell.widget, symbol);
         if (this.sync.symbol) this.relay(cell, (w) => void w.setSymbol(symbol));
         this.renderTabs();
         this.session?.changed();

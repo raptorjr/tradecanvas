@@ -1970,6 +1970,21 @@ export class ChartWidget {
     return this.watching.setWatchlistEntry(symbol, entry);
   }
 
+  /**
+   * Replace the host-provided interval whitelist and menu when switching a
+   * static historical series. Keep the current interval when supported.
+   * The host supplies new bars separately, before any timeframe resampling.
+   */
+  async setHostTimeframes(timeframes: readonly TimeFrame[], fallback: TimeFrame): Promise<void> {
+    const allowed = [...new Set(timeframes)];
+    if (!allowed.length || !allowed.includes(fallback)) throw new RangeError('Invalid host timeframe list');
+    this.chart.setFeatures({ timeframes: allowed });
+    this.timeframes = allowed;
+    this.toolbar?.setTimeframes(this.intervals.timeframeMenu(), this.intervals.pinnedTimeframes());
+    if (!allowed.includes(this.state.timeframe)) await this.setTimeframe(fallback);
+    else this.updateUI();
+  }
+
   /** Ignored when the chart's `features.timeframes` whitelist leaves `tf` out. */
   async setTimeframe(tf: TimeFrame): Promise<void> {
     if (!this.chart.isTimeframeAllowed(tf)) return;
