@@ -479,12 +479,7 @@ export class ChartWidgetGrid {
         ? { persistSettings: { key: `${settingsStoreKey(shared.persistSettings)}:${index}` } }
         : {}),
       // A rail of panels on every chart would narrow them all: off unless the grid's widget options turn it on.
-      features: {
-        dock: false,
-        ...shared.features,
-        ...own.features,
-        ...(this.options.layoutPickerInToolbar ? { 'toolbar.replay': false } : {}),
-      },
+      features: { dock: false, ...shared.features, ...own.features },
       onSymbolChange: (symbol) => {
         own.onSymbolChange?.(symbol);
         shared.onSymbolChange?.(symbol);
