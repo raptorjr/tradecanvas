@@ -194,3 +194,58 @@ describe('Chart replay session', () => {
   });
 });
 
+
+
+describe('Host-owned replay viewport', () => {
+  const state = () => (chart as unknown as { viewport: { getState(): {
+    offset: number; barWidth: number; barSpacing: number; chartRect: { width: number };
+  } } }).viewport.getState();
+  const x = (index: number) => {
+    const s = state();
+    return index * (s.barWidth + s.barSpacing) + s.barWidth / 2 - s.offset;
+  };
+
+  it('keeps existing candle positions and zoom until the replay frontier reaches the right margin', () => {
+    const source = bars(300);
+    chart.setData(source.slice(0, 30));
+    chart.setHostReplayViewport(true);
+    const s = state();
+    const slot = s.barWidth + s.barSpacing;
+    chart.scrollBars((x(29) - s.chartRect.width * 0.4) / slot);
+    const originalX = x(29);
+    const originalUnit = state().barWidth + state().barSpacing;
+    expect(originalX).toBeCloseTo(s.chartRect.width * 0.4, 1);
+    chart.appendBar(source[30]);
+    expect(x(29)).toBeCloseTo(originalX, 1);
+    expect(state().barWidth + state().barSpacing).toBeCloseTo(originalUnit);
+    let i = 31;
+    while (i < source.length && x(i - 1) + originalUnit < state().chartRect.width * 0.9) chart.appendBar(source[i++]);
+    expect(x(29)).toBeCloseTo(originalX, 1);
+    chart.appendBar(source[i++]);
+    expect(x(i - 1)).toBeCloseTo(state().chartRect.width * 0.9, 1);
+    chart.appendBar(source[i]);
+    expect(x(i)).toBeCloseTo(state().chartRect.width * 0.9, 1);
+  });
+
+  it('preserves the latest candle anchor on a timeframe resample', () => {
+    const source = bars(30);
+    chart.setData(source);
+    chart.setHostReplayViewport(true);
+    const s = state();
+    chart.scrollBars((x(29) - s.chartRect.width * 0.55) / (s.barWidth + s.barSpacing));
+    const originalX = x(29);
+    const originalUnit = state().barWidth + state().barSpacing;
+    chart.setData(source.filter((_, i) => i % 5 === 0));
+    expect(x(5)).toBeCloseTo(originalX, 1);
+    expect(state().barWidth + state().barSpacing).toBeCloseTo(originalUnit);
+  });
+
+  it('does not pull a historical view to the newest candle', () => {
+    const source = bars(301);
+    chart.setHostReplayViewport(true);
+    chart.scrollBars(-100);
+    const before = state().offset;
+    chart.appendBar(source[300]);
+    expect(state().offset).toBeCloseTo(before);
+  });
+});
