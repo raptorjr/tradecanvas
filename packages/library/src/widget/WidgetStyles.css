@@ -5318,17 +5318,17 @@
 .tcw-grid-tab {
   white-space: nowrap;
 }
-.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-cells {
+.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-workspace > .tcw-grid-cells {
   display: flex;
   flex-direction: column;
 }
-.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-cells > .tcw-grid-cell {
+.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-workspace > .tcw-grid-cells > .tcw-grid-cell {
   flex: 1;
 }
-.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-cells > .tcw-grid-cell:not(.tcw-grid-cell-current) {
+.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-workspace > .tcw-grid-cells > .tcw-grid-cell:not(.tcw-grid-cell-current) {
   display: none;
 }
-.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-cells > .tcw-grid-cell-active::after {
+.tcw-grid-has-tabs[data-tcw-narrow] > .tcw-grid-workspace > .tcw-grid-cells > .tcw-grid-cell-active::after {
   display: none;
 }
 
