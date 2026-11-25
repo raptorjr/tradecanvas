@@ -1,7 +1,7 @@
 import type { ChartStyleOverrides, ChartStyleOverridesPatch, DataAdapter, DrawingState, Theme, ThemeName, VisibleRangeChangePayload } from '@tradecanvas/commons';
 import { tickerOf } from '@tradecanvas/commons';
 import { ChartWidget } from './ChartWidget.js';
-import type { ChartWidgetOptions, WidgetLayoutsOptions } from './types.js';
+import type { ChartWidgetOptions, WidgetLayoutsOptions, ChartMenuItemsContext, WidgetMenuItem } from './types.js';
 import { readWidgetFeatures, type WidgetFeatures } from './widgetFeatures.js';
 import { GRID_LAYOUT_SHAPES, GRID_LAYOUTS, gridAreas, gridChartCount, isGridLayout, placeGridCell, type GridLayout, type GridShape } from '../grid/gridShapes.js';
 import { GridLayoutPicker } from './GridLayoutPicker.js';
@@ -75,6 +75,8 @@ export interface ChartWidgetGridOptions {
   onChartAdd?: (widget: ChartWidget, index: number) => void;
   /** Static-data hosts can supply the selected chart's series synchronously, before layout restoration continues. */
   onChartSymbolChange?: (widget: ChartWidget, symbol: string) => void;
+  /** Host chart-menu actions scoped to the exact originating chart. */
+  onChartMenuItems?: (widget: ChartWidget, context: ChartMenuItemsContext) => readonly WidgetMenuItem[];
 }
 
 /** What a grid's named layout holds. */
@@ -506,6 +508,7 @@ export class ChartWidgetGrid {
         : {}),
       // A rail of panels on every chart would narrow them all: off unless the grid's widget options turn it on.
       features: { dock: false, ...shared.features, ...own.features },
+      ...(this.options.onChartMenuItems ? { chartMenuItems: (context: ChartMenuItemsContext) => cell.widget ? this.options.onChartMenuItems!(cell.widget, context) : [] } : {}),
       onSymbolChange: (symbol) => {
         own.onSymbolChange?.(symbol);
         shared.onSymbolChange?.(symbol);
