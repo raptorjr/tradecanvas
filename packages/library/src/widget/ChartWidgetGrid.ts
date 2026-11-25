@@ -688,7 +688,12 @@ export class ChartWidgetGrid {
   /** Keep only the active chart's native toolbar in the shared row. */
   private syncSharedToolbar(): void {
     if (this.sharedToolbarEl) {
-      this.cells.forEach((cell, index) => {
+      // Restore the previous active toolbar before moving the single shared
+      // picker into the new active toolbar; otherwise the old Replay slot
+      // disappears before its native button can be restored.
+      const orderedCells = this.cells.map((cell, index) => ({ cell, index }))
+        .sort((a, b) => Number(a.index === this.active) - Number(b.index === this.active));
+      orderedCells.forEach(({ cell, index }) => {
         // A widget can rebuild its chrome when features change. Resolve the
         // live elements on every sync instead of trusting references captured
         // only once when the cell was first created.
