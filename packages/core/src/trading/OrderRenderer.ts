@@ -103,6 +103,8 @@ export class OrderRenderer {
           { kind: 'stamp', text: String(order.quantity) },
           { kind: 'text', text: orderKindText(order) },
         ];
+        const detail = config.orderDetailLabel?.(order, price);
+        if (detail) cells.push({ kind: 'text', text: detail });
         if (config.lineButtons?.cancel !== false && !isDragged(order, dragState)) {
           cells.push({ kind: 'button', icon: UI_ICONS.x, action: { type: 'cancelOrder', orderId: order.id } });
         }

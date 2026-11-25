@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Theme, TradingPosition } from '@tradecanvas/commons';
 import { DARK_THEME } from '@tradecanvas/commons';
 import { PositionRenderer } from '../PositionRenderer.js';
+import { OrderRenderer } from '../OrderRenderer.js';
 import { TradingManager } from '../TradingManager.js';
 import { recordingCtx, unitViewport } from '../../drawings/__tests__/fixtures.js';
 
@@ -81,5 +82,23 @@ describe('Futures position labels', () => {
       .toEqual(expect.arrayContaining(['+$20.00', '-$40.00', '+$40.00']));
     expect(labels({ ...nq, stopLoss: 50 }, 55)).toContain('$0.00');
     expect(labels({ ...nq, pointValue: undefined, currencySymbol: undefined }, 55)).toContain('+24.00');
+  });
+});
+
+describe('Host trading label formatters', () => {
+  it('passes protective prices, quantity and money including during a drag', () => {
+    const pos: TradingPosition = { id: 'p1', side: 'sell', entryPrice: 50, quantity: 3, closedQuantity: 1, pointValue: 20, stopLoss: 60, takeProfit: 40 };
+    const config = { enabled: true, protectiveAmountLabel: (ctx: import('@tradecanvas/commons').PositionLabelContext) =>
+      [ctx.currentPrice, ctx.openQuantity, ctx.pnl].join('/') };
+    const tags = new PositionRenderer().tags([pos], 45, unitViewport, config, { orderId: 'p1', sourceType: 'takeProfit', startPrice: 40, currentPrice: 35 });
+    const labels = tags.flatMap(tag => tag.cells.map(cell => cell.kind === 'text' ? cell.text : ''));
+    expect(labels).toEqual(expect.arrayContaining(['60/2/-400', '35/2/600']));
+  });
+  it('passes the dragged pending entry price to optional details', () => {
+    const order = { id: 'o1', side: 'buy' as const, type: 'limit' as const, quantity: 2, price: 50 };
+    const tags = new OrderRenderer().tags([order], unitViewport, {
+      enabled: true, orderDetailLabel: (o, price) => o.quantity + ' @ ' + price,
+    }, { orderId: 'o1', sourceType: 'order', startPrice: 50, currentPrice: 45 });
+    expect(tags[0].cells).toContainEqual({ kind: 'text', text: '2 @ 45' });
   });
 });

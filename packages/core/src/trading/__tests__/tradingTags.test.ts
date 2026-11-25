@@ -80,3 +80,26 @@ describe('drawTags', () => {
     expect(texts).toEqual(['2', 'Long']);
   });
 });
+
+describe('long host labels in narrow plots', () => {
+  it('shortens amount text to keep the close and SL/TP handles clickable', () => {
+    const { ctx, texts } = recordingCtx();
+    const buttons: LineButton[] = [];
+    const narrow = { ...unitViewport, chartRect: { ...unitViewport.chartRect, width: 220 } };
+    const tag: TradingTag = { y: 50, color: '#4c8dff', cells: [
+      { kind: 'stamp', text: '2' },
+      { kind: 'text', text: 'Long +$960.00 · +24.00 pts · +96 ticks · +0.096%' },
+      { kind: 'button', text: 'SL', color: '#e8505b', action: { type: 'addStop', positionId: 'p1', which: 'stopLoss', price: 50 } },
+      { kind: 'button', text: 'TP', color: '#1fa874', action: { type: 'addStop', positionId: 'p1', which: 'takeProfit', price: 50 } },
+      { kind: 'button', icon: UI_ICONS.x, action: { type: 'closePosition', positionId: 'p1' } },
+    ] };
+    drawTags(ctx, [tag], narrow, theme, buttons);
+    expect(texts.some(text => text.endsWith('…'))).toBe(true);
+    expect(buttons.map(button => button.action.type)).toEqual(['addStop', 'addStop', 'closePosition']);
+    expect(buttons.every(button => button.x + (button.width ?? button.size) <= narrow.chartRect.width)).toBe(true);
+    // The original label remains available when the plot has room.
+    const wide = recordingCtx();
+    drawTags(wide.ctx, [tag], unitViewport, theme, []);
+    expect(wide.texts).toContain('Long +$960.00 · +24.00 pts · +96 ticks · +0.096%');
+  });
+});

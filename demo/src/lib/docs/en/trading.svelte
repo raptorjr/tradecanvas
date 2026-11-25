@@ -454,6 +454,8 @@ new Chart(host, { features: { marks: false } })            // or chart.setFeatur
 
 <p>For futures, pass <code>pointValue</code> (money per point per contract) and optionally <code>currencySymbol</code> on each position passed to <code>setPositions</code>. Default position and protective-order amounts include the multiplier and remaining quantity. This affects chart labels, not broker execution or paper account accounting.</p>
 
+<p>Use <code>protectiveAmountLabel</code> in the trading config to format SL/TP amounts; its context uses the protective price (including while dragging). <code>orderDetailLabel</code> adds optional text to a pending order tag and receives its displayed price. Defaults remain unchanged without these callbacks.</p>
+
 <h2>P&amp;L gradient stops</h2>
 <pre><code>{`chart.setTradingConfig({
   pnlThresholds: [

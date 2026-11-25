@@ -205,7 +205,7 @@ chart.on('positionModify', (e) => console.log('stop or target dragged', e.payloa
 chart.modifyPositionIntent({ positionId: 'p1', trailingStop: 400 }); // the stop trails the price by 400 (tag: TSL); null ends it. The paper account moves it; an order takes trailingStop too
 ```
 
-For futures position labels, pass `pointValue` (money per price point per contract) and optional `currencySymbol` on the position. These scale chart P&L, including SL/TP, not execution or account balances.
+For futures position labels, pass `pointValue` (money per price point per contract) and optional `currencySymbol` on the position. These scale chart P&L, including SL/TP, not execution or account balances. Set `protectiveAmountLabel` in the trading config to format SL/TP using the position context at the protective price; `orderDetailLabel` can add pending entry details. Both receive the displayed price during a drag.
 
 
 76 drawing tools; each keeps its own settings (`setDrawingOptions`, `updateDrawing`),
