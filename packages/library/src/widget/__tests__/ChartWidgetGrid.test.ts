@@ -93,23 +93,33 @@ afterEach(() => {
 });
 
 describe('ChartWidgetGrid', () => {
-  it('keeps the layout picker permanently in the shared toolbar as active charts change', () => {
+  it('replaces the active chart replay button with the layout picker and restores it on chart switches', () => {
     make({ bar: false, sharedToolbar: true, layoutPickerInToolbar: true, layouts: false });
     const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
-    const picker = sharedToolbar?.querySelector('.tcw-grid-layout-btn');
-    expect(picker).not.toBeNull();
-    expect(picker?.parentElement).toBe(sharedToolbar);
+    const picker = host.querySelector<HTMLButtonElement>('.tcw-grid-layout-btn')!;
+    const toolbars = [...host.querySelectorAll<HTMLElement>('.tcw-toolbar')];
+    const replayButtons = toolbars.map(toolbar => toolbar.querySelector('[data-role="replay"]'));
+
+    expect(picker).toBeTruthy();
+    expect(picker.parentElement).toBe(toolbars[0]);
+    expect(replayButtons[0]?.parentElement).not.toBe(toolbars[0]);
+    expect(replayButtons[1]?.parentElement).toBe(toolbars[1]);
 
     grid.setActive(1);
-    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
-    expect(picker?.parentElement).toBe(sharedToolbar);
+    expect(picker.parentElement).toBe(toolbars[1]);
+    expect(replayButtons[0]?.parentElement).toBe(toolbars[0]);
+    expect(replayButtons[1]?.parentElement).not.toBe(toolbars[1]);
+    expect(sharedToolbar?.querySelectorAll('.tcw-toolbar')).toHaveLength(1);
 
     grid.setActive(0);
-    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
+    expect(picker.parentElement).toBe(toolbars[0]);
+    expect(replayButtons[0]?.parentElement).not.toBe(toolbars[0]);
+    expect(replayButtons[1]?.parentElement).toBe(toolbars[1]);
+
     layoutButton().click();
     host.querySelector<HTMLButtonElement>('.tcw-grid-picker [role="menuitemradio"][aria-label="4 charts, 2 across and 2 down"]')!.click();
     expect(grid.getLayout()).toBe('2x2');
-    expect(sharedToolbar?.querySelector('.tcw-grid-layout-btn')).toBe(picker);
+    expect(picker.parentElement).toBe(toolbars[0]);
   });
 
   it('shows only the active chart drawing sidebar and status bar in the shared rails', () => {
