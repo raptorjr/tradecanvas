@@ -512,3 +512,23 @@ describe('drawingMenuEntries', () => {
     expect(entries).not.toContain('delete');
   });
 });
+
+describe('hovered sidebar menus', () => {
+  it('does not steal focus and closes after the pointer leaves the anchor and menu', () => {
+    vi.useFakeTimers();
+    const wrap = document.createElement('div');
+    const anchor = document.createElement('button');
+    wrap.append(anchor);host.append(wrap);
+    anchor.focus();
+    menu.openBeside(ENTRIES,anchor,()=>{},true);
+    expect(menu.isOpen()).toBe(true);
+    expect(document.activeElement).toBe(anchor);
+    items()[0].dispatchEvent(new MouseEvent('pointermove',{bubbles:true}));
+    vi.advanceTimersByTime(200);
+    expect(menu.isOpen()).toBe(true);
+    document.body.dispatchEvent(new MouseEvent('pointermove',{bubbles:true}));
+    vi.advanceTimersByTime(200);
+    expect(menu.isOpen()).toBe(false);
+    vi.useRealTimers();
+  });
+});
