@@ -94,13 +94,47 @@ afterEach(() => {
 
 describe('ChartWidgetGrid', () => {
   it('replaces the active chart replay button with the layout picker and restores it on chart switches', () => {
-    make({ bar: false, sharedToolbar: true, layoutPickerInToolbar: true, layouts: false });
+    make({
+      bar: false,
+      sharedToolbar: true,
+      layoutPickerInToolbar: true,
+      layouts: false,
+      widget: { watchlist: false, features: { replay: true, 'toolbar.replay': true } },
+    });
     const sharedToolbar = host.querySelector('.tcw-grid-active-toolbar');
     const picker = host.querySelector<HTMLButtonElement>('.tcw-grid-layout-btn')!;
     const toolbars = [...host.querySelectorAll<HTMLElement>('.tcw-toolbar')];
+    // This fixture's inactive widget doesn't expose the optional Replay
+    // control by default. Supply the native node so the grid's restore/move
+    // behavior is exercised for both charts.
+    if (!toolbars[1].querySelector('[data-role="replay"]')) {
+      const replay = document.createElement('button');
+      replay.dataset.role = 'replay';
+      toolbars[1].appendChild(replay);
+    }
     const replayButtons = toolbars.map(toolbar => toolbar.querySelector('[data-role="replay"]'));
+    const cells = (grid as unknown as { cells: { toolbar: HTMLElement | null; replayButton: HTMLElement | null }[] }).cells;
+    const originalReplayButton = cells[0].replayButton;
+    // The first chart's native Replay button has already been replaced by
+    // the picker during grid construction, so capture the parked node.
+    replayButtons[0] = originalReplayButton;
 
     expect(picker).toBeTruthy();
+    expect(picker.parentElement).toBe(toolbars[0]);
+    expect(originalReplayButton).toBeTruthy();
+    expect(originalReplayButton?.parentElement).not.toBe(toolbars[0]);
+
+    // Simulate lost cached references (for example after widget chrome is
+    // rebuilt). Synchronization must rediscover the live toolbar and Replay
+    // button rather than leaving the native button visible.
+    picker.replaceWith(originalReplayButton!);
+    picker.remove();
+    cells[0].toolbar = null;
+    cells[0].replayButton = null;
+    // Force a real active-chart transition; setActive is intentionally a
+    // no-op when asked to activate the chart that is already active.
+    grid.setActive(1);
+    grid.setActive(0);
     expect(picker.parentElement).toBe(toolbars[0]);
     expect(replayButtons[0]?.parentElement).not.toBe(toolbars[0]);
     expect(replayButtons[1]?.parentElement).toBe(toolbars[1]);
