@@ -77,6 +77,8 @@ export interface StatusBarScale {
  */
 export class WidgetStatusBar {
   private el: HTMLDivElement;
+  private host: HTMLElement;
+  private readonly homeHost: HTMLElement;
   private dotEl: HTMLSpanElement;
   private messageEl: HTMLSpanElement;
   private marketEl: HTMLSpanElement;
@@ -103,10 +105,12 @@ export class WidgetStatusBar {
 
   /** `extras.label` names the bar, which holds the keyboard itself when nothing in it shows. */
   constructor(
-    private readonly host: HTMLElement,
+    host: HTMLElement,
     range?: StatusBarRange,
     private readonly extras: { clock?: StatusBarClock; scale?: StatusBarScale; label?: string } = {},
   ) {
+    this.host = host;
+    this.homeHost = host;
     this.el = document.createElement('div');
     this.el.className = 'tcw-statusbar';
     markPart(this.el, 'statusBar');
@@ -149,6 +153,14 @@ export class WidgetStatusBar {
     this.el.appendChild(right);
     host.appendChild(this.el);
     this.watchWidths(right);
+  }
+
+  /** Move this bar with the grid's active chart; its menus use the new host for positioning. */
+  moveTo(host: HTMLElement | null, visible = true): void {
+    this.host = host ?? this.homeHost;
+    this.host.appendChild(this.el);
+    this.el.hidden = !visible;
+    this.scheduleFit();
   }
 
   /**
