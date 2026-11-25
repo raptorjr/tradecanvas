@@ -156,6 +156,36 @@ describe('ChartWidgetGrid', () => {
     expect(picker.parentElement).toBe(toolbars[0]);
   });
 
+  it('keeps the grid picker in the toolbar when native replay is disabled (RR Metrics configuration)', () => {
+    make({
+      bar: false,
+      layouts: false,
+      sharedToolbar: true,
+      layoutPickerInToolbar: true,
+      sharedDrawingTools: true,
+      widget: { watchlist: false, features: { replay: false, 'dock.watchlist': false, depthLadder: false } },
+    });
+    const assertPicker = () => {
+      const activeToolbar = host.querySelector<HTMLElement>('.tcw-grid-active-toolbar .tcw-toolbar');
+      const picker = host.querySelector<HTMLButtonElement>('.tcw-grid-layout-btn');
+      expect(activeToolbar).toBeTruthy();
+      expect(picker?.parentElement).toBe(activeToolbar);
+      expect(activeToolbar?.querySelector('[data-role="replay"]')).toBeNull();
+      expect(host.querySelectorAll('.tcw-grid-layout-btn')).toHaveLength(1);
+    };
+    assertPicker();
+    grid.setLayout('2x2');
+    assertPicker();
+    grid.setActive(1);
+    assertPicker();
+    grid.setActive(2);
+    assertPicker();
+    layoutButton().click();
+    host.querySelector<HTMLButtonElement>('.tcw-grid-picker [role="menuitemradio"][data-layout="1x2"]')!.click();
+    expect(grid.getLayout()).toBe('1x2');
+    assertPicker();
+  });
+
   it('shows only the active chart drawing sidebar and status bar in the shared rails', () => {
     make({ sharedDrawingTools: true });
     const drawingRail = host.querySelector('.tcw-grid-shared-drawing-tools');
